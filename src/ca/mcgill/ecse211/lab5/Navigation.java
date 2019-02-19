@@ -2,7 +2,9 @@ package ca.mcgill.ecse211.lab5;
 
 import ca.mcgill.ecse211.odometer.*;
 import ca.mcgill.ecse211.odometer.OdometerExceptions;
+import lejos.hardware.Sound;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
+import lejos.hardware.motor.EV3MediumRegulatedMotor;
 
 /**
  * @author Floria Peng
@@ -18,10 +20,13 @@ public class Navigation {
   private static final int FORWARD_SPEED = 250; // The forward speed for the robot
   private static final int ROTATE_SPEED = 150; // The rotation speed for the robot
   private static final int ACCELERATION = 300; // The acceleration of the motor
+  private static final double SCAN_DISTANCE = 8; // The detect a can distance TODO
   public static final int FULL_TURN = 360; // 360 degree for a circle
 
   private EV3LargeRegulatedMotor leftMotor; // The left motor of the robot
   private EV3LargeRegulatedMotor rightMotor; // The right motor of the robot
+  private EV3MediumRegulatedMotor sensorMotor; // The sensor motor of the robot
+  private ColorClassification colorclassification; // The ColorClassification instance
   double leftRadius; // The left wheel radius of the robot
   double rightRadius; // The right wheel radius of the robot
   double track; // The track of the robot (by measuring the distance between the center of both
@@ -52,11 +57,13 @@ public class Navigation {
    * @throws OdometerExceptions
    */
   public Navigation(Odometer odometer, EV3LargeRegulatedMotor leftMotor,
-      EV3LargeRegulatedMotor rightMotor, double leftRadius, double rightRadius, double track)
-      throws OdometerExceptions {
+      EV3LargeRegulatedMotor rightMotor, EV3MediumRegulatedMotor sensorMotor, ColorClassification colorclassification, double leftRadius,
+      double rightRadius, double track) throws OdometerExceptions {
     this.odometer = odometer;
     this.leftMotor = leftMotor;
     this.rightMotor = rightMotor;
+    this.sensorMotor = sensorMotor;
+    this.colorclassification = colorclassification;
     this.leftRadius = leftRadius;
     this.rightRadius = rightRadius;
     this.track = track;
@@ -95,7 +102,7 @@ public class Navigation {
     rightMotor.rotate(convertDistance(rightRadius, travel), false);
 
   }
-  
+
   /**
    * <p>
    * This method causes the robot to travel to the absolute field location (x, y), specified in tile
@@ -111,7 +118,7 @@ public class Navigation {
    * 
    * @return - void method, no return
    */
-  void goTo(double x, double y) {
+  void goTo(double x, double y, int position) {
 
     lastx = odometer.getXYT()[0]; // The last x position of the robot
     lasty = odometer.getXYT()[1]; // The last y position of the robot
@@ -127,33 +134,57 @@ public class Navigation {
     // Travel the robot to the destination point
     leftMotor.rotate(convertDistance(leftRadius, travel), true);
     rightMotor.rotate(convertDistance(rightRadius, travel), true);
-    
+
     enter = 0;
     while (leftMotor.isMoving() || rightMotor.isMoving()) { // If the robot is moving
-      warning = UltrasonicLocalizer.filter();
-      if (warning < 10) {
-        enter = odometer.getXYT()[2];
-        
+      if (position == 0) { // If this is for light localization
+        break;
+      }
+      warning = colorclassification.median_filter();
+      if (warning < SCAN_DISTANCE) { // TODO
+        sensorMotor.rotate(FULL_TURN / 4, false);
+
         leftMotor.setAcceleration(ACCELERATION);
         rightMotor.setAcceleration(ACCELERATION);
         leftMotor.stop(true);
         rightMotor.stop(false);
+        rotate(FULL_TURN / 4);
+
+        Thread classificationThread = new Thread(colorclassification);
+        classificationThread.start();
         
-        // goAround();
+        goAround(position);
+        if (!colorclassification.found) {
+          colorclassification.notfound = true;
+        }
+        backToLine();
+        break;
       }
     }
 
   }
-  
-  void goAround() {
-    rotate(FULL_TURN / 4);
+
+  void goAround(int position) {
+    enter = odometer.position[2];
+
     leftMotor.setSpeed(ROTATE_SPEED / 2); // Slow down left motor
     rightMotor.setSpeed(FORWARD_SPEED / 2); // Speed up right motor
     leftMotor.forward();
     rightMotor.forward();
-    if (Math.abs(Math.abs(odometer.getXYT()[2] - enter) - 180) < 5) {
+    if (Math.abs(Math.abs(odometer.position[2] - enter) - 90 * position) < 1) {
+      leftMotor.setAcceleration(ACCELERATION);
+      rightMotor.setAcceleration(ACCELERATION);
+      leftMotor.stop(true);
+      rightMotor.stop(false);
       return;
     }
+  }
+
+  void backToLine() {
+    rotate(-30);
+    forward(SCAN_DISTANCE * Math.sqrt(2), SCAN_DISTANCE * Math.sqrt(2));
+    rotate(30);
+    sensorMotor.rotate(-FULL_TURN / 4, false);
   }
 
   /**
@@ -167,7 +198,7 @@ public class Navigation {
    * @param x - The x distance the robot should move
    * @param y - The y distance the robot should move
    */
-  void forword(double x, double y) {
+  void forward(double x, double y) {
 
     distance = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)); // The travel distance
     leftMotor.setSpeed(FORWARD_SPEED);

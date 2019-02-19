@@ -29,7 +29,6 @@ public class LightLocalizer implements Runnable {
   double rightRadius; // The right wheel radius of the robot
   double track; // The track of the robot (by measuring the distance between the center of both
                 // wheel)
-  private double halfTrack;
 
   private SampleProvider myColorStatus; // The sample provider for the color sensor
   private float[] sampleColor; // The data buffer for the color sensor reading
@@ -43,7 +42,6 @@ public class LightLocalizer implements Runnable {
                                                        // rotation sensor
   private static final double TURNING_ADJUSTMENT = 10; // The light localization adjustment
   private static final int BACK_DIST = 15; // Travel back distance
-  private static final int SLEEP_TIME = 1000; // Reach the lower-left time
 
   double last = Math.PI; // Initialize the last variable to a specific number
   double current = 0; // last and current are both used for differential filter
@@ -76,7 +74,6 @@ public class LightLocalizer implements Runnable {
     this.leftRadius = leftRadius;
     this.rightRadius = rightRadius;
     this.track = track;
-    this.halfTrack = track / 2;
 
     this.myColorStatus = myColorStatus;
     this.sampleColor = sampleColor;
@@ -94,8 +91,8 @@ public class LightLocalizer implements Runnable {
    */
   public void run() {
     // The robot will first travel 45 degree front-right first until the light sensor detects a line
-    navigation.goTo(TILE_SIZE * Math.sqrt(2), TILE_SIZE * Math.sqrt(2));
-    
+    navigation.goTo(TILE_SIZE * Math.sqrt(2), TILE_SIZE * Math.sqrt(2), 0); // TODO probably should change method
+
     while (rightMotor.isMoving() || leftMotor.isMoving()) {
       if (filter()) { // If the black line is detected, the robot will stop
         leftMotor.stop(true);
@@ -135,66 +132,30 @@ public class LightLocalizer implements Runnable {
     double turnAngle = 360 - detect[3];
     turnAngle += Math.toDegrees(Math.abs(Math.atan(xerror / yerror)));
     navigation.rotate(turnAngle);
-    navigation.forword(xerror, yerror);
-    navigation.rotate(
-        -TURNING_ADJUSTMENT - Math.toDegrees(Math.abs(Math.atan(xerror / yerror))));
-    
-    switch (Lab5.SC) {
+    navigation.forward(xerror, yerror);
+    navigation.rotate(-TURNING_ADJUSTMENT - Math.toDegrees(Math.abs(Math.atan(xerror / yerror))));
+
+    switch (SearchCan.SC) {
       case 0:
         odometer.setXYT(1 * TILE_SIZE, 1 * TILE_SIZE, 0);
         odometer.position[2] = 0;
-        navigation.travelTo(Lab5.LOWER_LEFT[0] * TILE_SIZE, Lab5.LOWER_LEFT[1] * TILE_SIZE); // 0
-        ready();
-        navigation.travelTo(Lab5.UPPER_RIGHT[0] * TILE_SIZE + halfTrack, Lab5.LOWER_LEFT[1] * TILE_SIZE - halfTrack); // 0
-        navigation.travelTo(Lab5.UPPER_RIGHT[0] * TILE_SIZE + halfTrack, Lab5.UPPER_RIGHT[1] * TILE_SIZE + halfTrack); // 0
         break;
       case 1:
         odometer.setXYT(7 * TILE_SIZE, 1 * TILE_SIZE, 270);
         odometer.position[2] = 270;
-        navigation.travelTo(Lab5.UPPER_RIGHT[0] * TILE_SIZE + halfTrack,  Lab5.LOWER_LEFT[1] * TILE_SIZE - halfTrack);
-        navigation.travelTo(Lab5.LOWER_LEFT[0] * TILE_SIZE - halfTrack,  Lab5.LOWER_LEFT[1] * TILE_SIZE - halfTrack);
-        navigation.travelTo(Lab5.LOWER_LEFT[0] * TILE_SIZE,  Lab5.LOWER_LEFT[1] * TILE_SIZE);
-        ready();
-        navigation.travelTo(Lab5.LOWER_LEFT[0] * TILE_SIZE - halfTrack,  Lab5.UPPER_RIGHT[1] * TILE_SIZE + halfTrack);
         break;
       case 2:
         odometer.setXYT(7 * TILE_SIZE, 7 * TILE_SIZE, 180);
         odometer.position[2] = 180;
-        navigation.travelTo(Lab5.UPPER_RIGHT[0] * TILE_SIZE + halfTrack,  Lab5.UPPER_RIGHT[1] * TILE_SIZE + halfTrack);
-        navigation.travelTo(Lab5.LOWER_LEFT[0] * TILE_SIZE - halfTrack,  Lab5.UPPER_RIGHT[1] * TILE_SIZE + halfTrack);
-        navigation.travelTo(Lab5.LOWER_LEFT[0] * TILE_SIZE - halfTrack,  Lab5.LOWER_LEFT[1] * TILE_SIZE - halfTrack);
-        navigation.travelTo(Lab5.LOWER_LEFT[0] * TILE_SIZE,  Lab5.LOWER_LEFT[1] * TILE_SIZE);
-        ready();
         break;
       case 3:
         odometer.setXYT(1 * TILE_SIZE, 7 * TILE_SIZE, 90);
         odometer.position[2] = 90;
-        navigation.travelTo(Lab5.LOWER_LEFT[0] * TILE_SIZE - halfTrack,  Lab5.UPPER_RIGHT[1] * TILE_SIZE + halfTrack);
-        navigation.travelTo(Lab5.LOWER_LEFT[0] * TILE_SIZE - halfTrack,  Lab5.UPPER_RIGHT[1] * TILE_SIZE - halfTrack);
-        navigation.travelTo(Lab5.LOWER_LEFT[0] * TILE_SIZE,  Lab5.LOWER_LEFT[1] * TILE_SIZE);
-        ready();
-        navigation.travelTo(Lab5.UPPER_RIGHT[0] * TILE_SIZE + halfTrack,  Lab5.LOWER_LEFT[1] * TILE_SIZE - halfTrack);
         break;
     }
-    
+
     Thread scThread = new Thread(searchcan);
     scThread.start();
-
-  }
-  
-  private void ready() {
-    navigation.turnTo(45);
-    Sound.beep();
-    sleep(SLEEP_TIME);
-    navigation.back(halfTrack, halfTrack);
-  }
-
-  private void sleep(int length) {
-    try {
-      Thread.sleep(length);
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    }
 
   }
 

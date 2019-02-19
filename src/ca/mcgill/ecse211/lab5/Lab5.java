@@ -3,9 +3,11 @@ package ca.mcgill.ecse211.lab5;
 
 import ca.mcgill.ecse211.odometer.*;
 import lejos.hardware.Button;
+import lejos.hardware.Sound;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.lcd.TextLCD;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
+import lejos.hardware.motor.EV3MediumRegulatedMotor;
 import lejos.hardware.port.Port;
 import lejos.hardware.sensor.EV3ColorSensor;
 import lejos.hardware.sensor.EV3UltrasonicSensor;
@@ -25,29 +27,24 @@ public class Lab5 {
 
   // Motor and Sensor Objects, and Robot related parameters
   // Connect all the motors and sensor to its port
-  public static final EV3LargeRegulatedMotor leftMotor =
+  private static final EV3LargeRegulatedMotor leftMotor =
       new EV3LargeRegulatedMotor(LocalEV3.get().getPort("A"));
-  public static final EV3LargeRegulatedMotor rightMotor =
+  private static final EV3LargeRegulatedMotor rightMotor =
       new EV3LargeRegulatedMotor(LocalEV3.get().getPort("B"));
+  private static final EV3MediumRegulatedMotor sensorMotor =
+      new EV3MediumRegulatedMotor(LocalEV3.get().getPort("C"));
 
   private static final Port usPort = LocalEV3.get().getPort("S1"); // Ultrasonic sensor port
   private static final Port portColor = LocalEV3.get().getPort("S2"); // Light sensor port
 
-  private static final Port portUS = LocalEV3.get().getPort("S3"); // The Ultrasonic sensor port for
-                                                                   // color detection
-  private static final Port colorPort = LocalEV3.get().getPort("S4"); // Light sensor port for color
+  private static final Port colorPort = LocalEV3.get().getPort("S3"); // Light sensor port for color
                                                                       // detection
 
   private static final TextLCD lcd = LocalEV3.get().getTextLCD(); // The LCD display
   public static final double WHEEL_RAD = 2.1; // The radius of the wheel measured
-  public static final double TRACK = 13.75; // The width of the robot measured
-
-  public static final int[] LOWER_LEFT = {1, 1}; // The lower-left corner of the search region [0,
-                                                 // 8]
-  public static final int[] UPPER_RIGHT = {5, 5}; // The upper-right corner of the search region [0,
-                                                  // 8]
-  public static final int TR = 1; // Blue, Green, Yellow, Red [1, 4]
-  public static final int SC = 0; // [0, 3]
+  public static final double TRACK = 11.5; // The width of the robot measured
+  public static final int FULL_TURN = 360; // 360 degree for a circle
+  private static final double SCAN_DISTANCE = 8; // The detect a can distance TODO
 
   /**
    * @param args
@@ -81,25 +78,20 @@ public class Lab5 {
     float[] sampleColor = new float[myColorStatus.sampleSize()]; // Create a data buffer
 
     // Sensor related objects
-    // Necessary for creating a ultrasonic sensor that reads in distance
-    SensorModes myUS = new EV3UltrasonicSensor(portUS); // Create usSensor instance
-    SampleProvider myUSStatus = myUS.getMode("Distance"); // usDistance provides samples from
-                                                              // the instance
-    float[] sampleUS = new float[myUSStatus.sampleSize()]; // usData is the buffer where data is
-                                                         // stored
-
-    // Sensor related objects
     // Necessary for creating a light sensor that reads the color
     SensorModes colorSensor = new EV3ColorSensor(colorPort); // Get sensor instance
     SampleProvider colorReading = colorSensor.getMode("RGB"); // Get sample provider as "RGB"
     float[] colorData = new float[colorReading.sampleSize()]; // Create a data buffer
 
+    ColorClassification colorclassification =
+        new ColorClassification(usDistance, usData, colorReading, colorData);
+
     // Navigation related objects
     // The navigation instance for creating a thread
-    Navigation navigation =
-        new Navigation(odometer, leftMotor, rightMotor, WHEEL_RAD, WHEEL_RAD, TRACK);
+    Navigation navigation = new Navigation(odometer, leftMotor, rightMotor, sensorMotor,
+        colorclassification, WHEEL_RAD, WHEEL_RAD, TRACK);
 
-    SearchCan searchcan = new SearchCan(myUSStatus, sampleUS, colorReading, colorData, navigation);
+    SearchCan searchcan = new SearchCan(TRACK, odometer, navigation, colorclassification);
 
     // LightLocalizer related objects
     // The lightlocalizer instance for creating a thread
@@ -114,33 +106,36 @@ public class Lab5 {
     // Display related objects
     // The display instance for updating the odometer reading to the LCD display
     Display odometryDisplay = new Display(lcd); // No need to change
-
+    
+    sensorMotor.rotate(FULL_TURN / 4, false);
     // The color classification
-    while (Button.waitForAnyPress() != Button.ID_ESCAPE) {
-      
-      if (SearchCan.median_filter() < 6) {
+    while (true) {
+      if (colorclassification.median_filter() < SCAN_DISTANCE) {
         lcd.drawString("Object Detected", 0, 0);
-        if (SearchCan.colorDetect(1)) {
+        if (colorclassification.colorDetect(1)) { // Blue detect
           lcd.drawString("Blue", 0, 1);
-        } ; // Blue detect
-        if (SearchCan.colorDetect(2)) {
+        } else if (colorclassification.colorDetect(2)) { // Green detect
           lcd.drawString("Green", 0, 1);
-        } ; // Green detect
-        if (SearchCan.colorDetect(3)) {
+        } else if (colorclassification.colorDetect(3)) { // Yellow detect
           lcd.drawString("Yellow", 0, 1);
-        } ; // Yellow detect
-        if (SearchCan.colorDetect(4)) {
+        } else if (colorclassification.colorDetect(4)) { // Red detect
           lcd.drawString("Red", 0, 1);
-        } ; // Red detect
+        }
       }
-
       try {
-        Thread.sleep(50);
+        Thread.sleep(2000);
       } catch (Exception e) {
+      }
+      lcd.clear();
+
+      buttonChoice = Button.readButtons();
+      if (buttonChoice == Button.ID_ESCAPE) {
+        break;
       }
 
     }
-
+    sensorMotor.rotate(-FULL_TURN / 4, false);
+    
     // Asking for user choice
     do {
       // clear the display

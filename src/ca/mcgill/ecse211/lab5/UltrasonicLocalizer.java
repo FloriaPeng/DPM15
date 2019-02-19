@@ -39,8 +39,8 @@ public class UltrasonicLocalizer implements Runnable {
   double track; // The track of the robot (by measuring the distance between the center of both
                 // wheel)
 
-  private static SampleProvider us; // The sample provider for the ultrasonic sensor
-  private static float[] usData; // The data buffer for the ultrasonic sensor reading
+  private SampleProvider us; // The sample provider for the ultrasonic sensor
+  private float[] usData; // The data buffer for the ultrasonic sensor reading
   private Navigation navigation; // The instance of navigation
   private LightLocalizer lightlocalizer; // The instance of light localizer
 
@@ -80,8 +80,8 @@ public class UltrasonicLocalizer implements Runnable {
     this.rightRadius = rightRadius;
     this.track = track;
 
-    UltrasonicLocalizer.us = us;
-    UltrasonicLocalizer.usData = usData;
+    this.us = us;
+    this.usData = usData;
     this.navigation = navigation;
     this.lightlocalizer = lightlocalizer;
     this.lcd = lcd;
@@ -251,7 +251,7 @@ public class UltrasonicLocalizer implements Runnable {
    * 
    * @return
    */
-  static double filter() { // TODO debug
+  double filter() { // TODO debug
     double[] arr = new double[5]; // store readings
     for (int i = 0; i < 5; i++) { // take 5 readings
       us.fetchSample(usData, 0); // store reading in buffer

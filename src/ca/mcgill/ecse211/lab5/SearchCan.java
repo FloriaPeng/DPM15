@@ -1,125 +1,141 @@
 package ca.mcgill.ecse211.lab5;
 
-import java.util.Arrays;
-import lejos.robotics.SampleProvider;
+import ca.mcgill.ecse211.odometer.*;
+import lejos.hardware.Sound;
 
 public class SearchCan implements Runnable {
 
+  public static final int[] LOWER_LEFT = {1, 1}; // The lower-left corner of the search region [0,
+                                                 // 8]
+  public static final int[] UPPER_RIGHT = {5, 5}; // The upper-right corner of the search region [0,
+                                                  // 8]
+  public static final int TR = 1; // Blue, Green, Yellow, Red [1, 4]
+  public static final int SC = 0; // [0, 3]
+
   public static final double TILE_SIZE = 30.48; // The tile size used for demo
-  
-  // The mean value of the normal plot for blue, green, yellow, red
-  public static final float[] MEAN_BLUE = {0, 0, 0}; // R, G, B
-  public static final float[] MEAN_GREEN = {0, 0, 0};
-  public static final float[] MEAN_YELLOW = {0, 0, 0};
-  public static final float[] MEAN_RED = {0, 0, 0};
-  // The standard deviation of the normal plot for blue, green, yellow, red
-  public static final float[] STD_BLUE = {0, 0, 0};
-  public static final float[] STD_GREEN = {0, 0, 0};
-  public static final float[] STD_YELLOW = {0, 0, 0};
-  public static final float[] STD_RED = {0, 0, 0};
+  private static final int SLEEP_TIME = 1000; // Reach the lower-left time
+  public static final int FULL_TURN = 360; // 360 degree for a circle
 
-  public static final int PROPER_DISTANCE = 0; // The proper distance between the color sensor and
-                                               // the can, so that the reading is valid
+  private Odometer odometer;
+  private Navigation navigation; // The instance of sensor rotation
+  private ColorClassification colorclassification;
 
-  private static SampleProvider myUSStatus; // The sample provider for the ultrasonic sensor
-  private static float[] sampleUS; // The data buffer for the ultrasonic sensor reading
-  
-  private static SampleProvider colorReading; // The sample provider for the color sensor
-  private static float[] colorData; // The data buffer for the color sensor reading
-  
-  private Navigation navigation;
+  double track; // The track of the robot
+  double halfTrack; // The half track of the robot TODO
+  int[][] map; // The search map
 
-  static double color;
-
-  // 1. The ultrasonic will continue rotating all the time, report if there is a can in front of it
-  // 2. If the ultrasonic sensor report a can, turn the robot 90 degrees to make the light sensor
-  // facing the can
-  // 3. The light sensor will keep reading the RGB value from the can while the robot is going
-  // around the can for 180 degrees
-  // 4. Use the data collected by the light sensor to determine if it is the correct can being
-  // scanned
-  // 5. Go back for a length of the a (TODO test for an appropriate a), turn right for 45 degree, go
-  // for squareRoot(2) * a of a robot and turn 45 degree right
-  // 6. Continue the previous route.
-
-  public SearchCan(SampleProvider myUSStatus, float[] sampleUS, SampleProvider colorReading, float[] colorData, Navigation navigation) {
-    SearchCan.myUSStatus = myUSStatus;
-    SearchCan.sampleUS = sampleUS;
-    SearchCan.colorReading = colorReading;
-    SearchCan.colorData = colorData;
-    
+  public SearchCan(double track, Odometer odometer, Navigation navigation,
+      ColorClassification colorclassification) {
+    this.track = track;
+    this.halfTrack = track / 2;
+    this.odometer = odometer;
     this.navigation = navigation;
+    this.colorclassification = colorclassification;
   }
 
   public void run() {
-    navigation.goTo(Lab5.UPPER_RIGHT[0] * TILE_SIZE, Lab5.LOWER_LEFT[1] * TILE_SIZE); // 1
-    navigation.goTo(Lab5.UPPER_RIGHT[0] * TILE_SIZE, Lab5.UPPER_RIGHT[1] * TILE_SIZE); // 2
-    navigation.goTo(Lab5.LOWER_LEFT[0] * TILE_SIZE, Lab5.UPPER_RIGHT[1] * TILE_SIZE); // 3
-  }
-
-  static boolean colorDetect(int colorID) {
-
-    float[] target_mean = {0, 0, 0};
-    float[] target_std = {0, 0, 0};
-
-    switch (colorID) {
-      case 1:
-        target_mean = MEAN_BLUE;
-        target_std = STD_BLUE;
+    initialize(); // Navigate the robot to the Lower-Left corner of the search region
+    searchMap(); // Generate search map
+    int x, y, position;
+    for (int i = 1; i < map.length; i++) {
+      x = map[i][0];
+      y = map[i][1];
+      position = map[i][2];
+      navigation.goTo(x, y, position);
+      if (colorclassification.found) {
         break;
-      case 2:
-        target_mean = MEAN_GREEN;
-        target_std = STD_GREEN;
-        break;
-      case 3:
-        target_mean = MEAN_YELLOW;
-        target_std = STD_YELLOW;
-        break;
-      case 4:
-        target_mean = MEAN_RED;
-        target_std = STD_RED;
-        break;
-    }
-    float[] reading = mean_filter();
-    color = Math.sqrt(Math.pow((reading[0] - target_mean[0]) / target_std[0], 2)
-        + Math.pow((reading[1] - target_mean[1]) / target_std[1], 2)
-        + Math.pow((reading[2] - target_mean[2]) / target_std[2], 2)); // TODO
-    if (color < Math.sqrt(3)) {
-      return true;
-    } else {
-      return false;
-    }
-    
-  }
-  
-  /**
-   * The median filter of the distance detected to ignore the noice
-   * 
-   * @return
-   */
-  static double median_filter() { // TODO debug
-    double[] arr = new double[5]; // store readings
-    for (int i = 0; i < 5; i++) { // take 5 readings
-      myUSStatus.fetchSample(sampleUS, 0); // store reading in buffer
-      arr[i] = sampleUS[0] * 100.0; // signal amplification
-    }
-    Arrays.sort(arr); // sort readings
-    return arr[2]; // take median value
-  }
-  
-  static float[] mean_filter() { // TODO debug
-    float[][] arr = new float[5][3]; // store readings
-    float[] RGB = {0, 0, 0};
-    for (int i = 0; i < 5; i++) { // take 5 readings
-      colorReading.fetchSample(colorData, 0); // store reading in buffer
-      arr[i] = colorData; // signal amplification
-    }
-    for (int i = 0; i < 5; i++) {
-      for (int j = 0; j < 3; j++) {
-        RGB[j] += arr[i][i] / 5;
       }
     }
-    return RGB; // take median value
+    if (colorclassification.found) {
+      navigation.rotate(FULL_TURN / 4);
+      navigation.forward(0, halfTrack);
+      navigation.travelTo(odometer.getXYT()[0], UPPER_RIGHT[1] + halfTrack);
+      navigation.travelTo(UPPER_RIGHT[0], UPPER_RIGHT[1] + halfTrack);
+      navigation.travelTo(UPPER_RIGHT[0], UPPER_RIGHT[1]);
+    } else if ((UPPER_RIGHT[1] - LOWER_LEFT[1] + 1) % 2 == 0) {
+      if (Math.abs(odometer.getXYT()[2] - FULL_TURN * 3 / 4) < (FULL_TURN / 8)) {
+        navigation.rotate(FULL_TURN / 4);
+        navigation.forward(0, halfTrack);
+      }
+      navigation.travelTo(UPPER_RIGHT[0], UPPER_RIGHT[1] + halfTrack);
+      navigation.travelTo(UPPER_RIGHT[0], UPPER_RIGHT[1]);
+    }
+  }
+
+  private void initialize() {
+    switch (SC) {
+      case 0:
+        navigation.travelTo(LOWER_LEFT[0] * TILE_SIZE, LOWER_LEFT[1] * TILE_SIZE); // 0
+        ready();
+        break;
+      case 1:
+        navigation.travelTo(UPPER_RIGHT[0] * TILE_SIZE + halfTrack,
+            LOWER_LEFT[1] * TILE_SIZE - halfTrack);
+        navigation.travelTo(LOWER_LEFT[0] * TILE_SIZE - halfTrack,
+            LOWER_LEFT[1] * TILE_SIZE - halfTrack);
+        navigation.travelTo(LOWER_LEFT[0] * TILE_SIZE, LOWER_LEFT[1] * TILE_SIZE);
+        ready();
+        break;
+      case 2:
+        navigation.travelTo(UPPER_RIGHT[0] * TILE_SIZE + halfTrack,
+            UPPER_RIGHT[1] * TILE_SIZE + halfTrack);
+        navigation.travelTo(LOWER_LEFT[0] * TILE_SIZE - halfTrack,
+            UPPER_RIGHT[1] * TILE_SIZE + halfTrack);
+        navigation.travelTo(LOWER_LEFT[0] * TILE_SIZE - halfTrack,
+            LOWER_LEFT[1] * TILE_SIZE - halfTrack);
+        navigation.travelTo(LOWER_LEFT[0] * TILE_SIZE, LOWER_LEFT[1] * TILE_SIZE);
+        ready();
+        break;
+      case 3:
+        navigation.travelTo(LOWER_LEFT[0] * TILE_SIZE - halfTrack,
+            UPPER_RIGHT[1] * TILE_SIZE + halfTrack);
+        navigation.travelTo(LOWER_LEFT[0] * TILE_SIZE - halfTrack,
+            UPPER_RIGHT[1] * TILE_SIZE - halfTrack);
+        navigation.travelTo(LOWER_LEFT[0] * TILE_SIZE, LOWER_LEFT[1] * TILE_SIZE);
+        ready();
+        break;
+    }
+  }
+
+  private void ready() {
+    navigation.turnTo(45);
+    Sound.beep();
+    sleep(SLEEP_TIME);
+  }
+
+  private void searchMap() {
+    int horizontal = UPPER_RIGHT[0] - LOWER_LEFT[0] + 1;
+    int vertical = UPPER_RIGHT[1] - LOWER_LEFT[1] + 1;
+    map = new int[horizontal * vertical][3];
+    int direction = 1;
+    for (int i = 0; i < vertical; i++) {
+      for (int j = 0; j < horizontal; j++) {
+        if (direction == 1) {
+          map[i * horizontal + j][0] = LOWER_LEFT[0] + j;
+          map[i * horizontal + j][1] = LOWER_LEFT[1] + i;
+        } else {
+          map[i * horizontal + j][0] = UPPER_RIGHT[0] - j;
+          map[i * horizontal + j][1] = LOWER_LEFT[1] + i;
+        }
+      }
+      direction *= -1;
+    }
+    for (int i = 0; i < map.length; i++) {
+      if (i % (2 * horizontal) == horizontal - 1 || i % (2 * horizontal) == horizontal) {
+        map[i][2] = 2;
+      } else if (i % (2 * horizontal) == 2 * horizontal - 1 || i % (2 * horizontal) == 0) {
+        map[i][2] = 4;
+      } else {
+        map[i][2] = 5;
+      }
+    }
+  }
+
+  private void sleep(int time) {
+    try {
+      Thread.sleep(time);
+    } catch (InterruptedException e) {
+    }
   }
 
 }
