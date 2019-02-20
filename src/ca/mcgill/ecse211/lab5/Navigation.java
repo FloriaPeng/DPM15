@@ -2,7 +2,6 @@ package ca.mcgill.ecse211.lab5;
 
 import ca.mcgill.ecse211.odometer.*;
 import ca.mcgill.ecse211.odometer.OdometerExceptions;
-import lejos.hardware.Sound;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 import lejos.hardware.motor.EV3MediumRegulatedMotor;
 
@@ -22,6 +21,8 @@ public class Navigation {
   private static final int ACCELERATION = 300; // The acceleration of the motor
   private static final double SCAN_DISTANCE = 8; // The detect a can distance TODO
   public static final int FULL_TURN = 360; // 360 degree for a circle
+  private static final double PREPARE_SQUARE = 5; // TODO
+  private static final double SQUARE_LENGTH = 12; // TODO
 
   private EV3LargeRegulatedMotor leftMotor; // The left motor of the robot
   private EV3LargeRegulatedMotor rightMotor; // The right motor of the robot
@@ -135,56 +136,51 @@ public class Navigation {
     leftMotor.rotate(convertDistance(leftRadius, travel), true);
     rightMotor.rotate(convertDistance(rightRadius, travel), true);
 
-    enter = 0;
     while (leftMotor.isMoving() || rightMotor.isMoving()) { // If the robot is moving
       if (position == 0) { // If this is for light localization
         break;
       }
       warning = colorclassification.median_filter();
       if (warning < SCAN_DISTANCE) { // TODO
-        sensorMotor.rotate(FULL_TURN / 4, false);
 
         leftMotor.setAcceleration(ACCELERATION);
         rightMotor.setAcceleration(ACCELERATION);
         leftMotor.stop(true);
         rightMotor.stop(false);
         rotate(FULL_TURN / 4);
+        sensorMotor.rotate(FULL_TURN / 4, false);
 
         Thread classificationThread = new Thread(colorclassification);
         classificationThread.start();
         
+        back(PREPARE_SQUARE, 0);
         goAround(position);
         if (!colorclassification.found) {
           colorclassification.notfound = true;
         }
         backToLine();
-        break;
       }
     }
 
   }
 
   void goAround(int position) {
-    enter = odometer.position[2];
-
-    leftMotor.setSpeed(ROTATE_SPEED / 2); // Slow down left motor
-    rightMotor.setSpeed(FORWARD_SPEED / 2); // Speed up right motor
-    leftMotor.forward();
-    rightMotor.forward();
-    if (Math.abs(Math.abs(odometer.position[2] - enter) - 90 * position) < 1) {
-      leftMotor.setAcceleration(ACCELERATION);
-      rightMotor.setAcceleration(ACCELERATION);
-      leftMotor.stop(true);
-      rightMotor.stop(false);
-      return;
+    
+    for (int i = 0; i < position; i++) {
+      forward(SQUARE_LENGTH, 0);
+      rotate(-FULL_TURN / 4);
     }
+    
   }
 
   void backToLine() {
+    
+    forward(0, SQUARE_LENGTH);
     rotate(-30);
     forward(SCAN_DISTANCE * Math.sqrt(2), SCAN_DISTANCE * Math.sqrt(2));
     rotate(30);
     sensorMotor.rotate(-FULL_TURN / 4, false);
+    
   }
 
   /**

@@ -8,25 +8,25 @@ public class ColorClassification implements Runnable {
 
   // The mean value of the normal plot for blue, green, yellow, red
   // R, G, B
-  public static final float[] MEAN_BLUE = {(float) 0.004901, (float) 0.016666, (float) 0.016666};
-  public static final float[] MEAN_GREEN = {(float) 0.002941, (float) 0.012745, (float) 0.002941};
-  public static final float[] MEAN_YELLOW = {(float) 0.032352, (float) 0.018627, (float) 0.003921};
-  public static final float[] MEAN_RED = {(float) 0.033333, (float) 0.008823, (float) 0.005882};
+  public static final float[] MEAN_BLUE = {(float) 0.005526, (float) 0.013250, (float) 0.010755};
+  public static final float[] MEAN_GREEN = {(float) 0.003129, (float) 0.010527, (float) 0.003218};
+  public static final float[] MEAN_YELLOW = {(float) 0.037928, (float) 0.022688, (float) 0.005595};
+  public static final float[] MEAN_RED = {(float) 0.018667, (float) 0.002129, (float) 0.001089};
   // The standard deviation of the normal plot for blue, green, yellow, red
-  public static final float[] STD_BLUE = {(float) 0.002, (float) 0.002, (float) 0.002};
-  public static final float[] STD_GREEN = {(float) 0.002, (float) 0.002, (float) 0.002};
-  public static final float[] STD_YELLOW = {(float) 0.002, (float) 0.002, (float) 0.002};
-  public static final float[] STD_RED = {(float) 0.002, (float) 0.002, (float) 0.002};
+  public static final float[] STD_BLUE = {(float) 0.000585, (float) 0.000567, (float) 0.000649};
+  public static final float[] STD_GREEN = {(float) 0.000518, (float) 0.000477, (float) 0.000561};
+  public static final float[] STD_YELLOW = {(float) 0.000621, (float) 0.000672, (float) 0.000744};
+  public static final float[] STD_RED = {(float) 0.001196, (float) 0.000578, (float) 0.000609};
 
-  public static final int PROPER_DISTANCE = 3; // The proper distance between the color sensor and
-                                               // the can, so that the reading is valid
+  public static final int SCAN_DISTANCE = 8; // The proper distance between the color sensor and
+                                             // the can, so that the reading is valid
 
   private SampleProvider usDistance; // The sample provider for the ultrasonic sensor
   private float[] usData; // The data buffer for the ultrasonic sensor reading
 
   private SampleProvider colorReading; // The sample provider for the color sensor
   private float[] colorData; // The data buffer for the color sensor reading
-  
+
   int detected = 0; // +1 if target color is detected
   boolean notfound = false; // false for this can is not the target can
   boolean found = false; // true for target color found
@@ -38,25 +38,23 @@ public class ColorClassification implements Runnable {
     this.colorReading = colorReading;
     this.colorData = colorData;
   }
-  
+
   public void run() {
     detected = 0;
     while (true) {
-      if (colorDetect(SearchCan.TR)) {
-        detected++;
+      if (Math.abs(median_filter() - SCAN_DISTANCE) < 1) {
+        if (colorDetect(SearchCan.TR)) {
+          detected++;
+        }
       }
-      if (detected == 20) {
-        Sound.beep();
+      if (detected > 2) {
         found = true;
+        Sound.beep();
         break;
       } else if (notfound) {
         Sound.twoBeeps();
         break;
       }
-    }
-    try {
-      Thread.sleep(500);
-    } catch (InterruptedException e) {
     }
   }
 

@@ -3,7 +3,6 @@ package ca.mcgill.ecse211.lab5;
 
 import ca.mcgill.ecse211.odometer.*;
 import lejos.hardware.Button;
-import lejos.hardware.Sound;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.lcd.TextLCD;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
@@ -23,7 +22,6 @@ import lejos.robotics.SampleProvider;
  *         display thread and the odometer thread after any of the user choice.
  *
  */
-
 public class Lab5 {
 
   // Motor and Sensor Objects, and Robot related parameters
@@ -110,30 +108,36 @@ public class Lab5 {
     
     sensorMotor.rotate(FULL_TURN / 4, false);
     // The color classification
-    while (true) {
+    while (Button.readButtons() != Button.ID_ESCAPE) {
       if (colorclassification.median_filter() < SCAN_DISTANCE) {
         lcd.drawString("Object Detected", 0, 0);
         if (colorclassification.colorDetect(1)) { // Blue detect
           lcd.drawString("Blue", 0, 1);
+          try {
+            Thread.sleep(2000);
+          } catch (Exception e) {
+          }
         } else if (colorclassification.colorDetect(2)) { // Green detect
           lcd.drawString("Green", 0, 1);
+          try {
+            Thread.sleep(2000);
+          } catch (Exception e) {
+          }
         } else if (colorclassification.colorDetect(3)) { // Yellow detect
           lcd.drawString("Yellow", 0, 1);
+          try {
+            Thread.sleep(2000);
+          } catch (Exception e) {
+          }
         } else if (colorclassification.colorDetect(4)) { // Red detect
           lcd.drawString("Red", 0, 1);
+          try {
+            Thread.sleep(2000);
+          } catch (Exception e) {
+          }
         }
       }
-      try {
-        Thread.sleep(2000);
-      } catch (Exception e) {
-      }
       lcd.clear();
-
-      buttonChoice = Button.readButtons();
-      if (buttonChoice == Button.ID_ESCAPE) {
-        break;
-      }
-
     }
     sensorMotor.rotate(-FULL_TURN / 4, false);
     
