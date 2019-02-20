@@ -43,7 +43,7 @@ public class Lab5 {
   public static final double WHEEL_RAD = 2.1; // The radius of the wheel measured
   public static final double TRACK = 11.5; // The width of the robot measured
   public static final int FULL_TURN = 360; // 360 degree for a circle
-  private static final double SCAN_DISTANCE = 8; // The detect a can distance TODO
+  private static final double SCAN_DISTANCE = 7; // The detect a can distance TODO
 
   /**
    * @param args
@@ -107,9 +107,10 @@ public class Lab5 {
     Display odometryDisplay = new Display(lcd); // No need to change
     
     sensorMotor.rotate(FULL_TURN / 4, false);
+    sensorMotor.stop(false);
     // The color classification
     while (Button.readButtons() != Button.ID_ESCAPE) {
-      if (colorclassification.median_filter() < SCAN_DISTANCE) {
+      if (Math.abs(colorclassification.median_filter() - SCAN_DISTANCE) < 0.5) {
         lcd.drawString("Object Detected", 0, 0);
         if (colorclassification.colorDetect(1)) { // Blue detect
           lcd.drawString("Blue", 0, 1);
@@ -140,6 +141,7 @@ public class Lab5 {
       lcd.clear();
     }
     sensorMotor.rotate(-FULL_TURN / 4, false);
+    sensorMotor.stop(false);
     
     // Asking for user choice
     do {

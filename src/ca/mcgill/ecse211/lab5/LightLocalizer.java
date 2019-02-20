@@ -38,7 +38,7 @@ public class LightLocalizer implements Runnable {
   public static final double TILE_SIZE = 30.48; // The tile size used for demo
   public static final int FACING_CORNER = 225; // Angle facing the corner
   public static final int FULL_TURN = 360; // 360 degree for a circle
-  private static final double SENSOR_TO_CENTER = 14.8; // The distance from the light sensor to the
+  private static final double SENSOR_TO_CENTER = 11; // The distance from the light sensor to the
                                                        // rotation sensor
   private static final double TURNING_ADJUSTMENT = 10; // The light localization adjustment
   private static final int BACK_DIST = 15; // Travel back distance
@@ -154,8 +154,8 @@ public class LightLocalizer implements Runnable {
         break;
     }
 
-    Thread scThread = new Thread(searchcan);
-    scThread.start();
+    // Thread scThread = new Thread(searchcan);
+    // scThread.start();
 
   }
 

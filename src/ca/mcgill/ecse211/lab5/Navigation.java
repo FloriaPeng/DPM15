@@ -16,10 +16,10 @@ import lejos.hardware.motor.EV3MediumRegulatedMotor;
 public class Navigation {
 
   private Odometer odometer; // The odometer instance
-  private static final int FORWARD_SPEED = 250; // The forward speed for the robot
-  private static final int ROTATE_SPEED = 150; // The rotation speed for the robot
-  private static final int ACCELERATION = 300; // The acceleration of the motor
-  private static final double SCAN_DISTANCE = 8; // The detect a can distance TODO
+  private static final int FORWARD_SPEED = 200; // The forward speed for the robot
+  private static final int ROTATE_SPEED = 100; // The rotation speed for the robot
+  private static final int ACCELERATION = 500; // The acceleration of the motor
+  private static final double SCAN_DISTANCE = 7; // The detect a can distance TODO
   public static final int FULL_TURN = 360; // 360 degree for a circle
   private static final double PREPARE_SQUARE = 5; // TODO
   private static final double SQUARE_LENGTH = 12; // TODO
@@ -149,6 +149,7 @@ public class Navigation {
         rightMotor.stop(false);
         rotate(FULL_TURN / 4);
         sensorMotor.rotate(FULL_TURN / 4, false);
+        sensorMotor.stop(false);
 
         Thread classificationThread = new Thread(colorclassification);
         classificationThread.start();
@@ -180,6 +181,7 @@ public class Navigation {
     forward(SCAN_DISTANCE * Math.sqrt(2), SCAN_DISTANCE * Math.sqrt(2));
     rotate(30);
     sensorMotor.rotate(-FULL_TURN / 4, false);
+    sensorMotor.stop(false);
     
   }
 
