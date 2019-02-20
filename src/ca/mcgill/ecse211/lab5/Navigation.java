@@ -13,7 +13,7 @@ import lejos.hardware.motor.EV3MediumRegulatedMotor;
  *         LightLocalizer.
  *
  */
-public class Navigation {
+public class Navigation { // TODO missing comment
 
   private Odometer odometer; // The odometer instance
   private static final int FORWARD_SPEED = 200; // The forward speed for the robot

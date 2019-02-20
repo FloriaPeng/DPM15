@@ -20,7 +20,7 @@ import lejos.robotics.SampleProvider;
  *         starts from facing the wall.
  *
  */
-public class UltrasonicLocalizer implements Runnable {
+public class UltrasonicLocalizer implements Runnable { // TODO missing comment
 
   public static final int INFINITY_DISTANCE = 50; // The distance that the sensor consider the robot
                                                   // is not facing the wall

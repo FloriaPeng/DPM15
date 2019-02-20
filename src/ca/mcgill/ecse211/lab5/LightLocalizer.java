@@ -20,7 +20,7 @@ import lejos.robotics.SampleProvider;
  *         robot travels to (1,1) again and adjust its angle based on x-error and y error.
  *
  */
-public class LightLocalizer implements Runnable {
+public class LightLocalizer implements Runnable { // TODO missing comment
 
   private Odometer odometer; // The odometer instance
   private EV3LargeRegulatedMotor leftMotor; // The left motor of the robot

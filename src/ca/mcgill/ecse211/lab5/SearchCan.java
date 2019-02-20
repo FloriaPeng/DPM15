@@ -3,7 +3,7 @@ package ca.mcgill.ecse211.lab5;
 import ca.mcgill.ecse211.odometer.*;
 import lejos.hardware.Sound;
 
-public class SearchCan implements Runnable {
+public class SearchCan implements Runnable { // TODO missing comment
 
   public static final int[] LOWER_LEFT = {1, 1}; // The lower-left corner of the search region [0,
                                                  // 8]
