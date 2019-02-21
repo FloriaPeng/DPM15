@@ -154,8 +154,8 @@ public class LightLocalizer implements Runnable { // TODO missing comment
         break;
     }
 
-    // Thread scThread = new Thread(searchcan);
-    // scThread.start();
+    Thread scThread = new Thread(searchcan);
+    scThread.start();
 
   }
 

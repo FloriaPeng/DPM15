@@ -41,7 +41,7 @@ public class SearchCan implements Runnable { // TODO missing comment
       x = map[i][0];
       y = map[i][1];
       position = map[i][2];
-      navigation.goTo(x, y, position);
+      navigation.goTo(x * TILE_SIZE, y * TILE_SIZE, position);
       if (colorclassification.found) {
         break;
       }
