@@ -41,7 +41,7 @@ public class Lab5 { // TODO missing comment
 
   private static final TextLCD lcd = LocalEV3.get().getTextLCD(); // The LCD display
   public static final double WHEEL_RAD = 2.1; // The radius of the wheel measured
-  public static final double TRACK = 11.5; // The width of the robot measured
+  public static final double TRACK = 11.35; // The width of the robot measured
   public static final int FULL_TURN = 360; // 360 degree for a circle
   private static final double SCAN_DISTANCE = 7; // The detect a can distance TODO
 
@@ -105,6 +105,8 @@ public class Lab5 { // TODO missing comment
     // Display related objects
     // The display instance for updating the odometer reading to the LCD display
     Display odometryDisplay = new Display(lcd); // No need to change
+    
+    // navigation.goTo(0, 30.48, 4);
     
     sensorMotor.rotate(FULL_TURN / 4, false);
     sensorMotor.stop(false);
@@ -191,5 +193,6 @@ public class Lab5 { // TODO missing comment
     // Press escape button to exit the program
     while (Button.waitForAnyPress() != Button.ID_ESCAPE);
     System.exit(0);
+    
   }
 }

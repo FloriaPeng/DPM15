@@ -2,6 +2,7 @@ package ca.mcgill.ecse211.lab5;
 
 import ca.mcgill.ecse211.odometer.*;
 import ca.mcgill.ecse211.odometer.OdometerExceptions;
+import lejos.hardware.Sound;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 import lejos.hardware.motor.EV3MediumRegulatedMotor;
 
@@ -18,11 +19,11 @@ public class Navigation { // TODO missing comment
   private Odometer odometer; // The odometer instance
   private static final int FORWARD_SPEED = 200; // The forward speed for the robot
   private static final int ROTATE_SPEED = 100; // The rotation speed for the robot
-  private static final int ACCELERATION = 500; // The acceleration of the motor
+  private static final int ACCELERATION = 3000; // The acceleration of the motor
   private static final double SCAN_DISTANCE = 7; // The detect a can distance TODO
   public static final int FULL_TURN = 360; // 360 degree for a circle
-  private static final double PREPARE_SQUARE = 5; // TODO
-  private static final double SQUARE_LENGTH = 12; // TODO
+  private static final double PREPARE_SQUARE = 26 / 2; // TODO
+  private static final double SQUARE_LENGTH = 26; // TODO
 
   private EV3LargeRegulatedMotor leftMotor; // The left motor of the robot
   private EV3LargeRegulatedMotor rightMotor; // The right motor of the robot
@@ -142,6 +143,7 @@ public class Navigation { // TODO missing comment
       }
       warning = colorclassification.median_filter();
       if (warning < SCAN_DISTANCE) { // TODO
+        Sound.beepSequenceUp();
 
         leftMotor.setAcceleration(ACCELERATION);
         rightMotor.setAcceleration(ACCELERATION);

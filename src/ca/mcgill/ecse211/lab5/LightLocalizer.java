@@ -40,7 +40,7 @@ public class LightLocalizer implements Runnable { // TODO missing comment
   public static final int FULL_TURN = 360; // 360 degree for a circle
   private static final double SENSOR_TO_CENTER = 11; // The distance from the light sensor to the
                                                        // rotation sensor
-  private static final double TURNING_ADJUSTMENT = 10; // The light localization adjustment
+  private static final double TURNING_ADJUSTMENT = 15; // The light localization adjustment
   private static final int BACK_DIST = 15; // Travel back distance
 
   double last = Math.PI; // Initialize the last variable to a specific number
@@ -128,12 +128,15 @@ public class LightLocalizer implements Runnable { // TODO missing comment
 
     // Correcting the position of the robot
     odometer.position[2] = odometer.position[2] + terror;
-    odometer.setTheta(odometer.position[2]);
-    double turnAngle = 360 - detect[3];
-    turnAngle += Math.toDegrees(Math.abs(Math.atan(xerror / yerror)));
-    navigation.rotate(turnAngle);
-    navigation.forward(xerror, yerror);
-    navigation.rotate(-TURNING_ADJUSTMENT - Math.toDegrees(Math.abs(Math.atan(xerror / yerror))));
+    // odometer.setTheta(odometer.position[2]);
+    odometer.setXYT(-xerror, -yerror, odometer.position[2]);
+    navigation.travelTo(0, 0);
+    navigation.turnTo(0);
+    // double turnAngle = 360 - detect[3];
+    // turnAngle += Math.toDegrees(Math.abs(Math.atan(xerror / yerror)));
+    // navigation.rotate(turnAngle);
+    // navigation.forward(xerror, yerror);
+    // navigation.rotate(-TURNING_ADJUSTMENT - Math.toDegrees(Math.abs(Math.atan(xerror / yerror))));
 
     switch (SearchCan.SC) {
       case 0:

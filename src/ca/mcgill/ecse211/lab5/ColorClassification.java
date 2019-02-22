@@ -2,6 +2,7 @@ package ca.mcgill.ecse211.lab5;
 
 import java.util.Arrays;
 import lejos.hardware.Sound;
+import lejos.hardware.lcd.LCD;
 import lejos.robotics.SampleProvider;
 
 public class ColorClassification implements Runnable { // TODO missing comment
@@ -55,6 +56,11 @@ public class ColorClassification implements Runnable { // TODO missing comment
     detected = 0;
     while (true) {
       if (Math.abs(median_filter() - SCAN_DISTANCE) < 0.5) {
+        LCD.clear();
+        LCD.drawString("R: " + mean_filter()[0], 0, 0);
+        LCD.drawString("G: " + mean_filter()[1], 0, 1);
+        LCD.drawString("B: " + mean_filter()[2], 0, 2);
+        
         if (colorDetect(SearchCan.TR)) {
           detected++;
         }
@@ -73,7 +79,7 @@ public class ColorClassification implements Runnable { // TODO missing comment
   boolean colorDetect(int colorID) {
 
     float[] target_mean = {0, 0, 0};
-    float[] target_std = {(float)0.1, (float)0.1, (float)0.1};
+    float[] target_std = {(float)0.2, (float)0.2, (float)0.2};
 
     switch (colorID) {
       case 1:
@@ -97,9 +103,9 @@ public class ColorClassification implements Runnable { // TODO missing comment
     for (int i = 0; i < 3; i++) {
       reading[i] /= Math.sqrt(Math.pow(reading[0], 2) + Math.pow(reading[1], 2) + Math.pow(reading[2], 2));
     }
-    if ((reading[0] - target_mean[0]) < target_std[0]
-        && (reading[1] - target_mean[1]) < target_std[1]
-        && (reading[2] - target_mean[2]) < target_std[2]) {
+    if (Math.abs(reading[0] - target_mean[0]) < target_std[0]
+        && Math.abs(reading[1] - target_mean[1]) < target_std[1]
+        && Math.abs(reading[2] - target_mean[2]) < target_std[2]) {
       return true;
     } else {
       return false;

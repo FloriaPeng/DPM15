@@ -28,7 +28,7 @@ public class UltrasonicLocalizer implements Runnable { // TODO missing comment
                                               // facing the wall
   public static boolean OPTION = true; // true for falling edge, false for rising edge
   public static final int FULL_TURN = 360; // 360 degree for a circle
-  private static final int ACCELERATION = 300; // The acceleration of the motor
+  private static final int ACCELERATION = 3000; // The acceleration of the motor
 
   private TextLCD lcd; // The lcd display
   private Odometer odometer; // The odometer instance
