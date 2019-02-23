@@ -8,19 +8,15 @@ public class ColorClassification implements Runnable { // TODO missing comment
 
   // The mean value of the normal plot for blue, green, yellow, red
   // R, G, B
-  public static final float[] MEAN_BLUE_HAT =
-      {(float) 0.307388, (float) 0.738585, (float) 0.599052};
-  public static final float[] MEAN_GREEN_HAT =
-      {(float) 0.263362, (float) 0.911141, (float) 0.300717};
-  public static final float[] MEAN_YELLOW_HAT =
-      {(float) 0.851280, (float) 0.509135, (float) 0.125418};
+  public static final float[] MEAN_BLUE_HAT = {(float) 0.307388, (float) 0.738585, (float) 0.599052};
+  public static final float[] MEAN_GREEN_HAT = {(float) 0.263362, (float) 0.911141, (float) 0.300717};
+  public static final float[] MEAN_YELLOW_HAT = {(float) 0.851280, (float) 0.509135, (float) 0.125418};
   public static final float[] MEAN_RED_HAT = {(float) 0.916237, (float) 0.316426, (float) 0.243150};
+  
   // The standard deviation of the normal plot for blue, green, yellow, red
   public static final float[] STD_BLUE_HAT = {(float) 0.024030, (float) 0.016221, (float) 0.017660};
-  public static final float[] STD_GREEN_HAT =
-      {(float) 0.076144, (float) 0.063255, (float) 0.018292};
-  public static final float[] STD_YELLOW_HAT =
-      {(float) 0.006869, (float) 0.009795, (float) 0.015301};
+  public static final float[] STD_GREEN_HAT = {(float) 0.076144, (float) 0.063255, (float) 0.018292};
+  public static final float[] STD_YELLOW_HAT = {(float) 0.006869, (float) 0.009795, (float) 0.015301};
   public static final float[] STD_RED_HAT = {(float) 0.012793, (float) 0.026668, (float) 0.019988};
 
   private SampleProvider usDistance; // The sample provider for the ultrasonic sensor
@@ -34,6 +30,10 @@ public class ColorClassification implements Runnable { // TODO missing comment
   int color = -1;
   boolean notfound = false; // false for this can is not the target can
   boolean found = false; // true for target color found
+  
+  
+  float[] sensorValues = new float[3];
+  int sensorReadCount = 0;
 
   public ColorClassification(SampleProvider usDistance, float[] usData, SampleProvider colorReading,
       float[] colorData) {
@@ -53,12 +53,6 @@ public class ColorClassification implements Runnable { // TODO missing comment
     }
 
     while (true) {
-
-      LCD.clear();
-      LCD.drawString("R: " + mean_filter()[0], 0, 0);
-      LCD.drawString("G: " + mean_filter()[1], 0, 1);
-      LCD.drawString("B: " + mean_filter()[2], 0, 2);
-
       if (colorDetect(0)) {
         detected[0]++;
       } else if (colorDetect(1)) {
@@ -71,8 +65,8 @@ public class ColorClassification implements Runnable { // TODO missing comment
       if (stop) {
         int[] arr = Arrays.copyOf(detected, detected.length);
         Arrays.sort(arr);
-        color = 0;
-        for (; color < arr.length; color++) {
+        
+        for (color = 0; color < arr.length; color++) {
           if (detected[color] == arr[3]) {
             break;
           }
@@ -120,9 +114,47 @@ public class ColorClassification implements Runnable { // TODO missing comment
     }
 
   }
+  
+  
+  
+  /*
+   * Read the sensor data, compute the average and store it as long as count <5
+   */
+  float[] mean_filter () {
+    
+    while (sensorReadCount < 5) {
+      // Fetch sample
+      colorReading.fetchSample(colorData, 0);
+      
+      // Store average value
+      sensorValues[0] = (sensorValues[0] + colorData[0]) / 2;
+      sensorValues[1] = (sensorValues[1] + colorData[1]) / 2;
+      sensorValues[2] = (sensorValues[2] + colorData[2]) / 2;
+
+      sensorReadCount++;
+    }
+    
+    float square = (float) Math.sqrt((Math.pow(sensorValues[0],2) + Math.pow(sensorValues[1],2) + Math.pow(sensorValues[2],2)));
+    
+    float r = sensorValues[0] / square;
+    float g = sensorValues[1] / square;
+    float b = sensorValues[2] / square;
+    
+    LCD.drawString("R: " + r, 0, 2);
+    LCD.drawString("G: " + g, 0, 3);
+    LCD.drawString("B: " + b, 0, 4);
+    
+    Arrays.fill(sensorValues, 0);
+    sensorReadCount = 0;
+    
+    float[] RGB = {r,g,b};
+    
+    return RGB;
+  }
+  
 
   /**
-   * The median filter of the distance detected to ignore the noice
+   * The median filter of the distance detected to ignore the noise
    * 
    * @return
    */
@@ -136,35 +168,4 @@ public class ColorClassification implements Runnable { // TODO missing comment
     return arr[2]; // take median value
   }
 
-  float[] mean_filter() { // The color filter TODO debug
-    float[][] arr = new float[5][3]; // store readings
-    float[][] temp = new float[5][3];
-    float[] RGB = {0, 0, 0};
-    for (int i = 0; i < 5; i++) { // take 5 readings
-      colorReading.fetchSample(colorData, 0); // store reading in buffer
-      arr[i] = colorData; // signal amplification
-      for (int k = 0; k < 3; k++) {
-        arr[i][k] *= 100;
-      }
-      temp[i] = Arrays.copyOf(arr[i], 3);
-      for (int k = 0; k < 3; k++) {
-        temp[i][k] *= 100;
-      }
-    }
-    for (int i = 0; i < 5; i++) { // Normalization
-      for (int j = 0; j < 3; j++) {
-        arr[i][j] /=
-            Math.sqrt(Math.pow(temp[i][0], 2) + Math.pow(temp[i][1], 2) + Math.pow(temp[i][2], 2));
-      }
-      LCD.drawString("R: " + arr[i][0], 0, 2);
-      LCD.drawString("G: " + arr[i][1], 0, 3);
-      LCD.drawString("B: " + arr[i][2], 0, 4);
-    }
-    for (int i = 0; i < 5; i++) { // Taking the average
-      for (int j = 0; j < 3; j++) {
-        RGB[j] += arr[i][j] / 5;
-      }
-    }
-    return RGB; // take median value
-  }
 }
