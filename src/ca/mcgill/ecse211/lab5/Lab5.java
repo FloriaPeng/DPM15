@@ -31,12 +31,12 @@ public class Lab5 { // TODO missing comment
   private static final EV3LargeRegulatedMotor rightMotor =
       new EV3LargeRegulatedMotor(LocalEV3.get().getPort("B"));
   private static final EV3MediumRegulatedMotor sensorMotor =
-      new EV3MediumRegulatedMotor(LocalEV3.get().getPort("C"));
+      new EV3MediumRegulatedMotor(LocalEV3.get().getPort("D"));
 
-  private static final Port usPort = LocalEV3.get().getPort("S1"); // Ultrasonic sensor port
-  private static final Port portColor1 = LocalEV3.get().getPort("S2"); // Light sensor port1
-  private static final Port portColor2 = LocalEV3.get().getPort("S3"); // Light sensor port2
-  private static final Port colorPort = LocalEV3.get().getPort("S4"); // Light sensor port for color
+  private static final Port usPort = LocalEV3.get().getPort("S4"); // Ultrasonic sensor port
+  // private static final Port portColor1 = LocalEV3.get().getPort("S2"); // Light sensor port1
+  // private static final Port portColor2 = LocalEV3.get().getPort("S3"); // Light sensor port2
+  private static final Port colorPort = LocalEV3.get().getPort("S1"); // Light sensor port for color
                                                                       // detection
 
   private static final TextLCD lcd = LocalEV3.get().getTextLCD(); // The LCD display
@@ -71,7 +71,7 @@ public class Lab5 { // TODO missing comment
     float[] usData = new float[usDistance.sampleSize()]; // usData is the buffer where data is
                                                          // stored
 
-    // Sensor1 related objects
+    /*// Sensor1 related objects
     // Necessary for creating a light sensor that reads the color
     SensorModes myColor1 = new EV3ColorSensor(portColor1); // Get sensor instance
     SampleProvider myColorStatus1 = myColor1.getMode("RGB"); // Get sample provider as "RGB"
@@ -82,7 +82,7 @@ public class Lab5 { // TODO missing comment
     SensorModes myColor2 = new EV3ColorSensor(portColor2); // Get sensor instance
     SampleProvider myColorStatus2 = myColor2.getMode("RGB"); // Get sample provider as "RGB"
     float[] sampleColor2 = new float[myColorStatus2.sampleSize()]; // Create a data buffer
-
+*/
     // Sensor related objects
     // Necessary for creating a light sensor that reads the color
     SensorModes colorSensor = new EV3ColorSensor(colorPort); // Get sensor instance
@@ -92,7 +92,7 @@ public class Lab5 { // TODO missing comment
     ColorClassification colorclassification =
         new ColorClassification(usDistance, usData, colorReading, colorData);
 
-    LineCorrection linecorrection =
+    /*LineCorrection linecorrection =
         new LineCorrection(myColorStatus1, sampleColor1, myColorStatus2, sampleColor2);
 
     // Navigation related objects
@@ -115,8 +115,10 @@ public class Lab5 { // TODO missing comment
     // Display related objects
     // The display instance for updating the odometer reading to the LCD display
     Display odometryDisplay = new Display(lcd); // No need to change
-
+*/
     // navigation.goTo(0, 30.48, 4);
+    /*sensorMotor.setSpeed(200 / 4);
+    sensorMotor.rotate(FULL_TURN);*/
 
     // The color classification
     while (Button.readButtons() != Button.ID_ESCAPE) {
@@ -125,34 +127,22 @@ public class Lab5 { // TODO missing comment
         lcd.drawString("Object Detected", 0, 0);
         if (colorclassification.colorDetect(1)) { // Blue detect
           lcd.drawString("Blue", 0, 1);
-          try {
-            Thread.sleep(2000);
-          } catch (Exception e) {
-          }
         } else if (colorclassification.colorDetect(2)) { // Green detect
           lcd.drawString("Green", 0, 1);
-          try {
-            Thread.sleep(2000);
-          } catch (Exception e) {
-          }
         } else if (colorclassification.colorDetect(3)) { // Yellow detect
           lcd.drawString("Yellow", 0, 1);
-          try {
-            Thread.sleep(2000);
-          } catch (Exception e) {
-          }
         } else if (colorclassification.colorDetect(4)) { // Red detect
           lcd.drawString("Red", 0, 1);
-          try {
-            Thread.sleep(2000);
-          } catch (Exception e) {
-          }
+        }
+        try {
+          Thread.sleep(2000);
+        } catch (Exception e) {
         }
       }
       lcd.clear();
     }
 
-    // Asking for user choice
+    /*// Asking for user choice
     do {
       // clear the display
       lcd.clear();
@@ -199,7 +189,6 @@ public class Lab5 { // TODO missing comment
 
     // Press escape button to exit the program
     while (Button.waitForAnyPress() != Button.ID_ESCAPE);
-    System.exit(0);
-
+    System.exit(0);*/
   }
 }
