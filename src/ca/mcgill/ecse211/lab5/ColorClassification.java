@@ -8,20 +8,35 @@ public class ColorClassification implements Runnable { // TODO missing comment
 
   // The mean value of the normal plot for blue, green, yellow, red
   // R, G, B
-  public static final float[] MEAN_BLUE_HAT =
-      {(float) 0.307388, (float) 0.738585, (float) 0.599052};
+  /*public static final float[] MEAN_BLUE_HAT =
+      {(float) 0.259460, (float) 0.634070, (float) 0.728403};
   public static final float[] MEAN_GREEN_HAT =
-      {(float) 0.263362, (float) 0.911141, (float) 0.300717};
+      {(float) 0.245649, (float) 0.947591, (float) 0.203922};
   public static final float[] MEAN_YELLOW_HAT =
-      {(float) 0.851280, (float) 0.509135, (float) 0.125418};
-  public static final float[] MEAN_RED_HAT = {(float) 0.916237, (float) 0.316426, (float) 0.243150};
+      {(float) 0.916237, (float) 0.316426, (float) 0.243150};
+  public static final float[] MEAN_RED_HAT = {(float) 0.990418, (float) 0.105019, (float) 0.089437};*/
   // The standard deviation of the normal plot for blue, green, yellow, red
-  public static final float[] STD_BLUE_HAT = {(float) 0.024030, (float) 0.016221, (float) 0.017660};
+  /*public static final float[] STD_BLUE_HAT = {(float) 0.006316, (float) 0.003392, (float) 0.003607};
   public static final float[] STD_GREEN_HAT =
-      {(float) 0.076144, (float) 0.063255, (float) 0.018292};
+      {(float) 0.007863, (float) 0.003210, (float) 0.008531};
   public static final float[] STD_YELLOW_HAT =
-      {(float) 0.006869, (float) 0.009795, (float) 0.015301};
-  public static final float[] STD_RED_HAT = {(float) 0.012793, (float) 0.026668, (float) 0.019988};
+      {(float) 0.001904, (float) 0.002950, (float) 0.004110};
+  public static final float[] STD_RED_HAT = {(float) 0.000783, (float) 0.004657, (float) 0.004712};*/
+  
+  public static final float[] MEAN_BLUE_HAT =
+      {(float) 0.269460, (float) 0.794070, (float) 0.588403};
+  public static final float[] MEAN_GREEN_HAT =
+      {(float) 0.245649, (float) 0.947591, (float) 0.203922};
+  public static final float[] MEAN_YELLOW_HAT =
+      {(float) 0.836237, (float) 0.536426, (float) 0.127190};
+  public static final float[] MEAN_RED_HAT = {(float) 0.990418, (float) 0.105019, (float) 0.089437};
+  
+  public static final float[] STD_BLUE_HAT = {(float) 0.030395, (float) 0.038519, (float) 0.031857};
+  public static final float[] STD_GREEN_HAT =
+      {(float) 0.034945, (float) 0.017382, (float) 0.042392};
+  public static final float[] STD_YELLOW_HAT =
+      {(float) 0.009065, (float) 0.014057, (float) 0.019677};
+  public static final float[] STD_RED_HAT = {(float) 0.004000, (float) 0.025304, (float) 0.024357};
 
   private SampleProvider usDistance; // The sample provider for the ultrasonic sensor
   private float[] usData; // The data buffer for the ultrasonic sensor reading
@@ -111,9 +126,9 @@ public class ColorClassification implements Runnable { // TODO missing comment
     /*LCD.drawString("R: " + reading[0], 0, 2);
     LCD.drawString("G: " + reading[1], 0, 3);
     LCD.drawString("B: " + reading[2], 0, 4);*/
-    if (Math.abs(reading[0] - target_mean[0]) < 2 * target_std[0]
-        && Math.abs(reading[1] - target_mean[1]) < 2 * target_std[1]
-        && Math.abs(reading[2] - target_mean[2]) < 2 * target_std[2]) {
+    if (Math.abs(reading[0] - target_mean[0]) < 3 * target_std[0]
+        && Math.abs(reading[1] - target_mean[1]) < 3 * target_std[1]
+        && Math.abs(reading[2] - target_mean[2]) < 3 * target_std[2]) {
       return true;
     } else {
       return false;
@@ -142,23 +157,14 @@ public class ColorClassification implements Runnable { // TODO missing comment
     float[] RGB = {0, 0, 0};
     for (int i = 0; i < 5; i++) { // take 5 readings
       colorReading.fetchSample(colorData, 0); // store reading in buffer
-      arr[i] = colorData; // signal amplification
-      for (int k = 0; k < 3; k++) {
-        arr[i][k] *= 100;
-      }
+      arr[i] = Arrays.copyOf(colorData, 3); // signal amplification
       temp[i] = Arrays.copyOf(arr[i], 3);
-      for (int k = 0; k < 3; k++) {
-        temp[i][k] *= 100;
-      }
     }
     for (int i = 0; i < 5; i++) { // Normalization
+      float norm = (float) Math.sqrt(Math.pow(temp[i][0], 2) + Math.pow(temp[i][1], 2) + Math.pow(temp[i][2], 2));
       for (int j = 0; j < 3; j++) {
-        arr[i][j] /=
-            Math.sqrt(Math.pow(temp[i][0], 2) + Math.pow(temp[i][1], 2) + Math.pow(temp[i][2], 2));
+        arr[i][j] = arr[i][j] / norm;
       }
-      LCD.drawString("R: " + arr[i][0], 0, 2);
-      LCD.drawString("G: " + arr[i][1], 0, 3);
-      LCD.drawString("B: " + arr[i][2], 0, 4);
     }
     for (int i = 0; i < 5; i++) { // Taking the average
       for (int j = 0; j < 3; j++) {
@@ -167,4 +173,5 @@ public class ColorClassification implements Runnable { // TODO missing comment
     }
     return RGB; // take median value
   }
+
 }

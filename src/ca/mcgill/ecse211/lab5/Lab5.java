@@ -34,8 +34,8 @@ public class Lab5 { // TODO missing comment
       new EV3MediumRegulatedMotor(LocalEV3.get().getPort("D"));
 
   private static final Port usPort = LocalEV3.get().getPort("S4"); // Ultrasonic sensor port
-  // private static final Port portColor1 = LocalEV3.get().getPort("S2"); // Light sensor port1
-  // private static final Port portColor2 = LocalEV3.get().getPort("S3"); // Light sensor port2
+  private static final Port portColor1 = LocalEV3.get().getPort("S2"); // Light sensor port1
+  private static final Port portColor2 = LocalEV3.get().getPort("S3"); // Light sensor port2
   private static final Port colorPort = LocalEV3.get().getPort("S1"); // Light sensor port for color
                                                                       // detection
 
@@ -71,7 +71,7 @@ public class Lab5 { // TODO missing comment
     float[] usData = new float[usDistance.sampleSize()]; // usData is the buffer where data is
                                                          // stored
 
-    /*// Sensor1 related objects
+    // Sensor1 related objects
     // Necessary for creating a light sensor that reads the color
     SensorModes myColor1 = new EV3ColorSensor(portColor1); // Get sensor instance
     SampleProvider myColorStatus1 = myColor1.getMode("RGB"); // Get sample provider as "RGB"
@@ -82,7 +82,7 @@ public class Lab5 { // TODO missing comment
     SensorModes myColor2 = new EV3ColorSensor(portColor2); // Get sensor instance
     SampleProvider myColorStatus2 = myColor2.getMode("RGB"); // Get sample provider as "RGB"
     float[] sampleColor2 = new float[myColorStatus2.sampleSize()]; // Create a data buffer
-*/
+
     // Sensor related objects
     // Necessary for creating a light sensor that reads the color
     SensorModes colorSensor = new EV3ColorSensor(colorPort); // Get sensor instance
@@ -92,7 +92,7 @@ public class Lab5 { // TODO missing comment
     ColorClassification colorclassification =
         new ColorClassification(usDistance, usData, colorReading, colorData);
 
-    /*LineCorrection linecorrection =
+    LineCorrection linecorrection =
         new LineCorrection(myColorStatus1, sampleColor1, myColorStatus2, sampleColor2);
 
     // Navigation related objects
@@ -115,7 +115,7 @@ public class Lab5 { // TODO missing comment
     // Display related objects
     // The display instance for updating the odometer reading to the LCD display
     Display odometryDisplay = new Display(lcd); // No need to change
-*/
+
     // navigation.goTo(0, 30.48, 4);
     /*sensorMotor.setSpeed(200 / 4);
     sensorMotor.rotate(FULL_TURN);*/
@@ -142,7 +142,7 @@ public class Lab5 { // TODO missing comment
       lcd.clear();
     }
 
-    /*// Asking for user choice
+    // Asking for user choice
     do {
       // clear the display
       lcd.clear();
@@ -189,6 +189,6 @@ public class Lab5 { // TODO missing comment
 
     // Press escape button to exit the program
     while (Button.waitForAnyPress() != Button.ID_ESCAPE);
-    System.exit(0);*/
+    System.exit(0);
   }
 }

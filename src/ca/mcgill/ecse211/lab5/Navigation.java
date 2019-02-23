@@ -170,7 +170,7 @@ public class Navigation { // TODO missing comment
         Thread classificationThread = new Thread(colorclassification);
         classificationThread.start();
         sensorMotor.setSpeed(ROTATE_SPEED / 4);
-        sensorMotor.rotate(FULL_TURN / 2, true);
+        sensorMotor.rotate(FULL_TURN, true);
         while (sensorMotor.isMoving()) {
           try {
             Thread.sleep(50);
@@ -182,12 +182,12 @@ public class Navigation { // TODO missing comment
           colorclassification.found = true;
           Sound.beep();
           sensorMotor.setSpeed(ROTATE_SPEED);
-          sensorMotor.rotate(FULL_TURN / 2, false);
+          sensorMotor.rotate(FULL_TURN, false);
           return;
         } else {
           Sound.twoBeeps();
           sensorMotor.setSpeed(ROTATE_SPEED);
-          sensorMotor.rotate(FULL_TURN / 2, false);
+          sensorMotor.rotate(FULL_TURN, false);
           canAvoidance(position);
         }
       }
