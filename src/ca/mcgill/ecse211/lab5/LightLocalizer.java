@@ -65,8 +65,7 @@ public class LightLocalizer implements Runnable { // TODO missing comment
    * @throws OdometerExceptions
    */
   public LightLocalizer(Odometer odometer, EV3LargeRegulatedMotor leftMotor,
-      EV3LargeRegulatedMotor rightMotor, double leftRadius, double rightRadius, double track,
-      LineCorrection linecorrection, Navigation navigation, SearchCan searchcan)
+      EV3LargeRegulatedMotor rightMotor, double leftRadius, double rightRadius, double track)
       throws OdometerExceptions {
     this.odometer = odometer;
     this.leftMotor = leftMotor;
@@ -74,10 +73,6 @@ public class LightLocalizer implements Runnable { // TODO missing comment
     this.leftRadius = leftRadius;
     this.rightRadius = rightRadius;
     this.track = track;
-
-    this.linecorrection = linecorrection;
-    this.navigation = navigation;
-    this.searchcan = searchcan;
   }
 
   /**
@@ -149,10 +144,6 @@ public class LightLocalizer implements Runnable { // TODO missing comment
         odometer.position[2] = 90;
         break;
     }
-
-    Thread scThread = new Thread(searchcan);
-    scThread.start();
-
   }
 
   void correctAngle() {

@@ -4,25 +4,8 @@ import java.util.Arrays;
 import lejos.hardware.lcd.LCD;
 import lejos.robotics.SampleProvider;
 
-public class ColorClassification implements Runnable { // TODO missing comment
+public class ColorClassification implements Runnable {
 
-  // The mean value of the normal plot for blue, green, yellow, red
-  // R, G, B
-  /*public static final float[] MEAN_BLUE_HAT =
-      {(float) 0.259460, (float) 0.634070, (float) 0.728403};
-  public static final float[] MEAN_GREEN_HAT =
-      {(float) 0.245649, (float) 0.947591, (float) 0.203922};
-  public static final float[] MEAN_YELLOW_HAT =
-      {(float) 0.916237, (float) 0.316426, (float) 0.243150};
-  public static final float[] MEAN_RED_HAT = {(float) 0.990418, (float) 0.105019, (float) 0.089437};*/
-  // The standard deviation of the normal plot for blue, green, yellow, red
-  /*public static final float[] STD_BLUE_HAT = {(float) 0.006316, (float) 0.003392, (float) 0.003607};
-  public static final float[] STD_GREEN_HAT =
-      {(float) 0.007863, (float) 0.003210, (float) 0.008531};
-  public static final float[] STD_YELLOW_HAT =
-      {(float) 0.001904, (float) 0.002950, (float) 0.004110};
-  public static final float[] STD_RED_HAT = {(float) 0.000783, (float) 0.004657, (float) 0.004712};*/
-  
   public static final float[] MEAN_BLUE_HAT =
       {(float) 0.269460, (float) 0.794070, (float) 0.588403};
   public static final float[] MEAN_GREEN_HAT =
