@@ -17,7 +17,7 @@ import lejos.hardware.motor.EV3MediumRegulatedMotor;
 public class Navigation { // TODO missing comment
 
   private Odometer odometer; // The odometer instance
-  public static final int FORWARD_SPEED = 200; // The forward speed for the robot
+  public static final int FORWARD_SPEED = 180; // The forward speed for the robot
   public static final int ROTATE_SPEED = 100; // The rotation speed for the robot
   private static final int ACCELERATION = 3000; // The acceleration of the motor
   private static final double SCAN_DISTANCE = 7; // The detect a can distance TODO
@@ -222,24 +222,24 @@ public class Navigation { // TODO missing comment
   }
 
   void canAvoidance(int position) {
-    back(PREPARE_SQUARE, 0);
+    back((PREPARE_SQUARE - 2.9), 0);    //diameter of can = 5.8cm
     if (position == 0) { // right side can
       rotate(-90);
       forward(SQUARE_LENGTH, 0);
       rotate(90);
-      forward(SQUARE_LENGTH * 3, 0);
+      forward(SQUARE_LENGTH * 2, 0);
       rotate(-90);
     } else if (position == 1) { // left side can
       rotate(90);
       forward(SQUARE_LENGTH, 0);
       rotate(-90);
-      forward(SQUARE_LENGTH * 3, 0);
+      forward(SQUARE_LENGTH * 2, 0);
       rotate(90);
     } else if (position == 2) { // straight line can
       rotate(90);
       forward(SQUARE_LENGTH, 0);
       rotate(-90);
-      forward(SQUARE_LENGTH  * 3, 0);
+      forward(SQUARE_LENGTH  * 2, 0);
       rotate(-90);
       forward(SQUARE_LENGTH, 0);
       rotate(90);
