@@ -1,7 +1,6 @@
 package ca.mcgill.ecse211.lab5;
 
 import java.util.Arrays;
-import lejos.hardware.Sound;
 import lejos.hardware.lcd.LCD;
 import lejos.robotics.SampleProvider;
 
@@ -21,18 +20,20 @@ public class ColorClassification implements Runnable { // TODO missing comment
 
   // The mean value of the normal plot for blue, green, yellow, red
   // R, G, B
-  public static final float[] MEAN_BLUE_HAT = {(float) 0.308062, (float) 0.738658, (float) 0.599568};
-  public static final float[] MEAN_GREEN_HAT = {(float) 0.273420, (float) 0.919875, (float) 0.281197};
-  public static final float[] MEAN_YELLOW_HAT = {(float) 0.851384, (float) 0.509286, (float) 0.125593};
+  public static final float[] MEAN_BLUE_HAT =
+      {(float) 0.308062, (float) 0.738658, (float) 0.599568};
+  public static final float[] MEAN_GREEN_HAT =
+      {(float) 0.273420, (float) 0.919875, (float) 0.281197};
+  public static final float[] MEAN_YELLOW_HAT =
+      {(float) 0.851384, (float) 0.509286, (float) 0.125593};
   public static final float[] MEAN_RED_HAT = {(float) 0.991894, (float) 0.113127, (float) 0.057865};
   // The standard deviation of the normal plot for blue, green, yellow, red
   public static final float[] STD_BLUE_HAT = {(float) 0.561640, (float) 0.544359, (float) 0.623084};
-  public static final float[] STD_GREEN_HAT = {(float) 0.575352, (float) 0.529812, (float) 0.623113};
-  public static final float[] STD_YELLOW_HAT = {(float) 0.526581, (float) 0.569827, (float) 0.630880};
+  public static final float[] STD_GREEN_HAT =
+      {(float) 0.575352, (float) 0.529812, (float) 0.623113};
+  public static final float[] STD_YELLOW_HAT =
+      {(float) 0.526581, (float) 0.569827, (float) 0.630880};
   public static final float[] STD_RED_HAT = {(float) 0.818453, (float) 0.395540, (float) 0.416754};
-
-  public static final int SCAN_DISTANCE = 7; // The proper distance between the color sensor and
-                                             // the can, so that the reading is valid TODO
 
   private SampleProvider usDistance; // The sample provider for the ultrasonic sensor
   private float[] usData; // The data buffer for the ultrasonic sensor reading
@@ -40,7 +41,9 @@ public class ColorClassification implements Runnable { // TODO missing comment
   private SampleProvider colorReading; // The sample provider for the color sensor
   private float[] colorData; // The data buffer for the color sensor reading
 
-  int detected = 0; // +1 if target color is detected
+  int[] detected = new int[4]; // +1 if target color is detected
+  boolean stop = false;
+  int color = -1;
   boolean notfound = false; // false for this can is not the target can
   boolean found = false; // true for target color found
 
@@ -53,33 +56,49 @@ public class ColorClassification implements Runnable { // TODO missing comment
   }
 
   public void run() {
-    detected = 0;
+
+    // Initialize the thread
+    stop = false;
+    color = -1;
+    for (int i = 0; i < 4; i++) {
+      detected[i] = 0;
+    }
+
     while (true) {
-      if (Math.abs(median_filter() - SCAN_DISTANCE) < 0.5) {
-        LCD.clear();
-        LCD.drawString("R: " + mean_filter()[0], 0, 0);
-        LCD.drawString("G: " + mean_filter()[1], 0, 1);
-        LCD.drawString("B: " + mean_filter()[2], 0, 2);
-        
-        if (colorDetect(SearchCan.TR)) {
-          detected++;
-        }
+
+      LCD.clear();
+      LCD.drawString("R: " + mean_filter()[0], 0, 0);
+      LCD.drawString("G: " + mean_filter()[1], 0, 1);
+      LCD.drawString("B: " + mean_filter()[2], 0, 2);
+
+      if (colorDetect(0)) {
+        detected[0]++;
+      } else if (colorDetect(1)) {
+        detected[1]++;
+      } else if (colorDetect(2)) {
+        detected[2]++;
+      } else if (colorDetect(3)) {
+        detected[3]++;
       }
-      if (detected > 2) {
-        found = true;
-        Sound.beep();
-        break;
-      } else if (notfound) {
-        Sound.twoBeeps();
+      if (stop) {
+        int[] arr = Arrays.copyOf(detected, detected.length);
+        Arrays.sort(arr);
+        color = 0;
+        for (; color < arr.length; color++) {
+          if (detected[color] == arr[3]) {
+            break;
+          }
+        }
         break;
       }
     }
+
   }
 
   boolean colorDetect(int colorID) {
 
     float[] target_mean = {0, 0, 0};
-    float[] target_std = {(float)0.2, (float)0.2, (float)0.2};
+    float[] target_std = {(float) 0.2, (float) 0.2, (float) 0.2};
 
     switch (colorID) {
       case 1:
@@ -101,7 +120,8 @@ public class ColorClassification implements Runnable { // TODO missing comment
     }
     float[] reading = mean_filter();
     for (int i = 0; i < 3; i++) {
-      reading[i] /= Math.sqrt(Math.pow(reading[0], 2) + Math.pow(reading[1], 2) + Math.pow(reading[2], 2));
+      reading[i] /=
+          Math.sqrt(Math.pow(reading[0], 2) + Math.pow(reading[1], 2) + Math.pow(reading[2], 2));
     }
     if (Math.abs(reading[0] - target_mean[0]) < target_std[0]
         && Math.abs(reading[1] - target_mean[1]) < target_std[1]

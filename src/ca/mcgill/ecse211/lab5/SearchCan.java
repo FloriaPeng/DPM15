@@ -13,7 +13,7 @@ public class SearchCan implements Runnable { // TODO missing comment
   public static final int SC = 0; // [0, 3]
 
   public static final double TILE_SIZE = 30.48; // The tile size used for demo
-  private static final int SLEEP_TIME = 1000; // Reach the lower-left time
+  private static final int SLEEP_TIME = 5000; // Reach the lower-left time
   public static final int FULL_TURN = 360; // 360 degree for a circle
 
   private Odometer odometer;
@@ -42,11 +42,13 @@ public class SearchCan implements Runnable { // TODO missing comment
       y = map[i][1];
       position = map[i][2];
       navigation.goTo(x * TILE_SIZE, y * TILE_SIZE, position);
+      navigation.flag = 0;
       if (colorclassification.found) {
         break;
       }
     }
     if (colorclassification.found) {
+      navigation.back(halfTrack, 0);
       navigation.rotate(FULL_TURN / 4);
       navigation.forward(0, halfTrack);
       navigation.travelTo(odometer.getXYT()[0], UPPER_RIGHT[1] + halfTrack);
@@ -98,9 +100,11 @@ public class SearchCan implements Runnable { // TODO missing comment
   }
 
   private void ready() {
-    navigation.turnTo(45);
     Sound.beep();
-    sleep(SLEEP_TIME);
+    try {
+      Thread.sleep(SLEEP_TIME);
+    } catch (InterruptedException e) {
+    }
   }
 
   private void searchMap() {
@@ -122,19 +126,14 @@ public class SearchCan implements Runnable { // TODO missing comment
     }
     for (int i = 0; i < map.length; i++) {
       if (i % (2 * horizontal) == horizontal - 1 || i % (2 * horizontal) == horizontal) {
-        map[i][2] = 2;
+        // right side can
+        map[i][2] = 0;
       } else if (i % (2 * horizontal) == 2 * horizontal - 1 || i % (2 * horizontal) == 0) {
-        map[i][2] = 4;
-      } else {
-        map[i][2] = 5;
+        // left side can
+        map[i][2] = 1;
+      } else { // straight line can
+        map[i][2] = 2;
       }
-    }
-  }
-
-  private void sleep(int time) {
-    try {
-      Thread.sleep(time);
-    } catch (InterruptedException e) {
     }
   }
 

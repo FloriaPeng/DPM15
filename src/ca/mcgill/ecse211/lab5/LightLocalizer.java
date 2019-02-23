@@ -2,9 +2,7 @@ package ca.mcgill.ecse211.lab5;
 
 import ca.mcgill.ecse211.odometer.Odometer;
 import ca.mcgill.ecse211.odometer.OdometerExceptions;
-import lejos.hardware.Sound;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
-import lejos.robotics.SampleProvider;
 
 /**
  * @author Floria Peng
@@ -30,8 +28,7 @@ public class LightLocalizer implements Runnable { // TODO missing comment
   double track; // The track of the robot (by measuring the distance between the center of both
                 // wheel)
 
-  private SampleProvider myColorStatus; // The sample provider for the color sensor
-  private float[] sampleColor; // The data buffer for the color sensor reading
+  private LineCorrection linecorrection; // The instance of line correction
   private Navigation navigation; // The instance of sensor rotation
   private SearchCan searchcan;
 
@@ -39,16 +36,19 @@ public class LightLocalizer implements Runnable { // TODO missing comment
   public static final int FACING_CORNER = 225; // Angle facing the corner
   public static final int FULL_TURN = 360; // 360 degree for a circle
   private static final double SENSOR_TO_CENTER = 11; // The distance from the light sensor to the
-                                                       // rotation sensor
-  private static final double TURNING_ADJUSTMENT = 15; // The light localization adjustment
-  private static final int BACK_DIST = 15; // Travel back distance
+                                                     // rotation sensor
+  private static final int BACK_DIST = 13; // Travel back distance TODO
 
   double last = Math.PI; // Initialize the last variable to a specific number
   double current = 0; // last and current are both used for differential filter
-  double[] detect = new double[4]; // The x and y tile line detect angle, clockwise
+  double[] detect1 = new double[4]; // The x and y tile line detect angle, clockwise
+  double[] detect2 = new double[4]; // The x and y tile line detect angle, clockwise
+  long[] time = new long[2]; // The time of the light sensor
+  boolean[] line = {false, false}; // The detection of the line of the two light sensors
   double xerror = 0; // The localization error in the x direction
   double yerror = 0; // The localization error in the y direction
   double terror = 0; // The localization error in angle
+  double before = 0; // The before line correction angle
 
   /**
    * The constructor of this class
@@ -66,7 +66,7 @@ public class LightLocalizer implements Runnable { // TODO missing comment
    */
   public LightLocalizer(Odometer odometer, EV3LargeRegulatedMotor leftMotor,
       EV3LargeRegulatedMotor rightMotor, double leftRadius, double rightRadius, double track,
-      SampleProvider myColorStatus, float[] sampleColor, Navigation navigation, SearchCan searchcan)
+      LineCorrection linecorrection, Navigation navigation, SearchCan searchcan)
       throws OdometerExceptions {
     this.odometer = odometer;
     this.leftMotor = leftMotor;
@@ -75,8 +75,7 @@ public class LightLocalizer implements Runnable { // TODO missing comment
     this.rightRadius = rightRadius;
     this.track = track;
 
-    this.myColorStatus = myColorStatus;
-    this.sampleColor = sampleColor;
+    this.linecorrection = linecorrection;
     this.navigation = navigation;
     this.searchcan = searchcan;
   }
@@ -91,25 +90,23 @@ public class LightLocalizer implements Runnable { // TODO missing comment
    */
   public void run() {
     // The robot will first travel 45 degree front-right first until the light sensor detects a line
-    navigation.goTo(TILE_SIZE * Math.sqrt(2), TILE_SIZE * Math.sqrt(2), 0); // TODO probably should change method
+    navigation.move(TILE_SIZE);
+    correctAngle();
+    navigation.back(0, BACK_DIST); // And then go back a certain distance
+    navigation.rotate(FULL_TURN / 4);
 
-    while (rightMotor.isMoving() || leftMotor.isMoving()) {
-      if (filter()) { // If the black line is detected, the robot will stop
-        leftMotor.stop(true);
-        rightMotor.stop(false);
-      }
-      try {
-        Thread.sleep(50);
-      } catch (Exception e) {
-      }
-    }
+    navigation.move(TILE_SIZE);
+    correctAngle();
+    navigation.back(BACK_DIST, 0);
 
-    navigation.back(BACK_DIST, BACK_DIST); // And then go back a certain distance
     navigation.turn(FULL_TURN); // Then starts rotating clockwise
 
     for (int i = 0; i < 4;) { // It will record 4 angles
-      if (filter()) {
-        detect[i] = odometer.getXYT()[2];
+      if (linecorrection.filter1()) {
+        detect1[i] = odometer.getXYT()[2];
+      }
+      if (linecorrection.filter2()) {
+        detect1[i] = odometer.getXYT()[2];
         i++;
       }
       try {
@@ -121,22 +118,18 @@ public class LightLocalizer implements Runnable { // TODO missing comment
     rightMotor.stop(false);
 
     // Calculate the x error, y error and theta error using the cos of the angle detected
-    xerror = SENSOR_TO_CENTER * Math.cos(Math.toRadians((detect[3] - detect[1]) / 2));
-    yerror = SENSOR_TO_CENTER * Math.cos(Math.toRadians((detect[2] - detect[0]) / 2));
+    xerror = SENSOR_TO_CENTER * Math.cos(
+        Math.toRadians((((detect1[3] + detect2[3]) / 2) - ((detect1[1] + detect2[1]) / 2)) / 2));
+    yerror = SENSOR_TO_CENTER * Math.cos(
+        Math.toRadians((((detect1[2] + detect2[2]) / 2) - ((detect1[0] + detect2[0]) / 2)) / 2));
 
-    terror = 270 - (detect[3] + detect[1]) / 2;
+    terror = 270 - (((detect1[3] + detect2[3]) / 2) + ((detect1[1] + detect2[1]) / 2)) / 2;
 
     // Correcting the position of the robot
     odometer.position[2] = odometer.position[2] + terror;
-    // odometer.setTheta(odometer.position[2]);
     odometer.setXYT(-xerror, -yerror, odometer.position[2]);
     navigation.travelTo(0, 0);
     navigation.turnTo(0);
-    // double turnAngle = 360 - detect[3];
-    // turnAngle += Math.toDegrees(Math.abs(Math.atan(xerror / yerror)));
-    // navigation.rotate(turnAngle);
-    // navigation.forward(xerror, yerror);
-    // navigation.rotate(-TURNING_ADJUSTMENT - Math.toDegrees(Math.abs(Math.atan(xerror / yerror))));
 
     switch (SearchCan.SC) {
       case 0:
@@ -162,30 +155,31 @@ public class LightLocalizer implements Runnable { // TODO missing comment
 
   }
 
-  /**
-   * The differential filter of the light sensor, it will consider detecting a line if there is a
-   * huge increase of the reading (the derivative if large)
-   * 
-   * @return - true for detecting an line, vice versa
-   */
-  boolean filter() { // Differential filter
-
-    myColorStatus.fetchSample(sampleColor, 0); // Used for obtaining color reading from the
-                                               // SampleProvider
-
-    if (Math.abs(last - Math.PI) < Math.pow(0.1, 5)) { // If last has not been assigned for any
-                                                       // number yet
-      last = current = sampleColor[0];
-    } else {
-      last = current; // Update the last
-      current = sampleColor[0]; // Update the current
+  void correctAngle() {
+    while (rightMotor.isMoving() || leftMotor.isMoving()) {
+      if (linecorrection.filter1()) { // If the black line is detected, the robot will stop
+        time[0] = System.currentTimeMillis();
+        line[0] = true;
+      }
+      if (linecorrection.filter2()) {
+        time[1] = System.currentTimeMillis();
+        line[1] = true;
+      }
+      if (line[0] && line[1]) {
+        line[0] = line[1] = false;
+        leftMotor.stop(true);
+        rightMotor.stop(false);
+        double dtheta = Math.atan(((time[1] - time[0]) * Navigation.FORWARD_SPEED) / track);
+        before = odometer.getXYT()[2];
+        navigation.rotate(-dtheta);
+        odometer.setTheta(before);
+        odometer.position[2] = before;
+      }
+      try {
+        Thread.sleep(50);
+      } catch (Exception e) {
+      }
     }
-
-    if ((current - last) / 0.01 < -0.7) { // If there is a black line detected
-      Sound.beepSequenceUp();
-      return true;
-    }
-    return false;
   }
 
 }

@@ -17,14 +17,15 @@ import lejos.hardware.motor.EV3MediumRegulatedMotor;
 public class Navigation { // TODO missing comment
 
   private Odometer odometer; // The odometer instance
-  private static final int FORWARD_SPEED = 200; // The forward speed for the robot
-  private static final int ROTATE_SPEED = 100; // The rotation speed for the robot
+  public static final int FORWARD_SPEED = 200; // The forward speed for the robot
+  public static final int ROTATE_SPEED = 100; // The rotation speed for the robot
   private static final int ACCELERATION = 3000; // The acceleration of the motor
   private static final double SCAN_DISTANCE = 7; // The detect a can distance TODO
   public static final int FULL_TURN = 360; // 360 degree for a circle
   private static final double PREPARE_SQUARE = 26 / 2; // TODO
   private static final double SQUARE_LENGTH = 26; // TODO
 
+  private LineCorrection linecorrection; // The instance of line correction
   private EV3LargeRegulatedMotor leftMotor; // The left motor of the robot
   private EV3LargeRegulatedMotor rightMotor; // The right motor of the robot
   private EV3MediumRegulatedMotor sensorMotor; // The sensor motor of the robot
@@ -45,6 +46,12 @@ public class Navigation { // TODO missing comment
   double enter; // The entering avoidance angle
   boolean isNavigating = false; // True for the robot is traveling to next point
 
+  long[] time = new long[2]; // The time of the light sensor
+  boolean[] line = {false, false}; // The detection of the line of the two light sensors
+  boolean corrected = false;
+  double before = 0;
+  int flag = 0;
+
   /**
    * The constructor for the Navigation class
    * 
@@ -59,13 +66,15 @@ public class Navigation { // TODO missing comment
    * @throws OdometerExceptions
    */
   public Navigation(Odometer odometer, EV3LargeRegulatedMotor leftMotor,
-      EV3LargeRegulatedMotor rightMotor, EV3MediumRegulatedMotor sensorMotor, ColorClassification colorclassification, double leftRadius,
+      EV3LargeRegulatedMotor rightMotor, EV3MediumRegulatedMotor sensorMotor,
+      ColorClassification colorclassification, LineCorrection linecorrection, double leftRadius,
       double rightRadius, double track) throws OdometerExceptions {
     this.odometer = odometer;
     this.leftMotor = leftMotor;
     this.rightMotor = rightMotor;
     this.sensorMotor = sensorMotor;
     this.colorclassification = colorclassification;
+    this.linecorrection = linecorrection;
     this.leftRadius = leftRadius;
     this.rightRadius = rightRadius;
     this.track = track;
@@ -122,6 +131,10 @@ public class Navigation { // TODO missing comment
    */
   void goTo(double x, double y, int position) {
 
+    if (flag == 0) {
+      corrected = false;
+    }
+
     lastx = odometer.getXYT()[0]; // The last x position of the robot
     lasty = odometer.getXYT()[1]; // The last y position of the robot
 
@@ -138,9 +151,13 @@ public class Navigation { // TODO missing comment
     rightMotor.rotate(convertDistance(rightRadius, travel), true);
 
     while (leftMotor.isMoving() || rightMotor.isMoving()) { // If the robot is moving
-      if (position == 0) { // If this is for light localization
-        break;
+
+      if (!corrected) {
+        correctAngle();
+        flag = 1;
+        goTo(x, y, position);
       }
+
       warning = colorclassification.median_filter();
       if (warning < SCAN_DISTANCE) { // TODO
         Sound.beepSequenceUp();
@@ -149,42 +166,89 @@ public class Navigation { // TODO missing comment
         rightMotor.setAcceleration(ACCELERATION);
         leftMotor.stop(true);
         rightMotor.stop(false);
-        rotate(FULL_TURN / 4);
-        sensorMotor.rotate(FULL_TURN / 4, false);
-        sensorMotor.stop(false);
 
         Thread classificationThread = new Thread(colorclassification);
         classificationThread.start();
-        
-        back(PREPARE_SQUARE, 0);
-        goAround(position);
-        if (!colorclassification.found) {
-          colorclassification.notfound = true;
+        sensorMotor.setSpeed(ROTATE_SPEED / 4);
+        sensorMotor.rotate(FULL_TURN / 2, true);
+        while (sensorMotor.isMoving()) {
+          try {
+            Thread.sleep(50);
+          } catch (Exception e) {
+          }
         }
-        backToLine();
+        colorclassification.stop = true;
+        if (colorclassification.color == SearchCan.TR) {
+          colorclassification.found = true;
+          Sound.beep();
+          sensorMotor.setSpeed(ROTATE_SPEED);
+          sensorMotor.rotate(FULL_TURN / 2, false);
+          return;
+        } else {
+          Sound.twoBeeps();
+          sensorMotor.setSpeed(ROTATE_SPEED);
+          sensorMotor.rotate(FULL_TURN / 2, false);
+          canAvoidance(position);
+        }
       }
     }
 
   }
 
-  void goAround(int position) {
-    
-    for (int i = 0; i < position; i++) {
-      forward(SQUARE_LENGTH, 0);
-      rotate(-FULL_TURN / 4);
+  void correctAngle() {
+    if (linecorrection.filter1()) { // If the black line is detected, the robot will stop
+      time[0] = System.currentTimeMillis();
+      line[0] = true;
     }
-    
+    if (linecorrection.filter2()) {
+      time[1] = System.currentTimeMillis();
+      line[1] = true;
+    }
+    if (line[0] && line[1]) {
+      line[0] = line[1] = false;
+      leftMotor.stop(true);
+      rightMotor.stop(false);
+      double dtheta = Math.atan(((time[1] - time[0]) * Navigation.FORWARD_SPEED) / track);
+      before = odometer.getXYT()[2];
+      rotate(-dtheta);
+      odometer.setTheta(before);
+      odometer.position[2] = before;
+      corrected = true;
+    }
   }
 
-  void backToLine() {
-    
-    forward(0, SQUARE_LENGTH);
-    rotate(-30);
-    forward(SCAN_DISTANCE * Math.sqrt(2), SCAN_DISTANCE * Math.sqrt(2));
-    rotate(30);
-    sensorMotor.rotate(-FULL_TURN / 4, false);
-    sensorMotor.stop(false);
-    
+  void canAvoidance(int position) {
+    back(PREPARE_SQUARE, 0);
+    if (position == 0) { // right side can
+      rotate(-FULL_TURN / 4);
+      forward(SQUARE_LENGTH, 0);
+      rotate(FULL_TURN / 4);
+      forward(SQUARE_LENGTH, 0);
+      rotate(-FULL_TURN / 4);
+    } else if (position == 1) { // left side can
+      rotate(FULL_TURN / 4);
+      forward(SQUARE_LENGTH, 0);
+      rotate(-FULL_TURN / 4);
+      forward(SQUARE_LENGTH, 0);
+      rotate(FULL_TURN / 4);
+    } else if (position == 2) { // straight line can
+      rotate(FULL_TURN / 4);
+      forward(SQUARE_LENGTH, 0);
+      rotate(-FULL_TURN / 4);
+      forward(SQUARE_LENGTH, 0);
+      rotate(-FULL_TURN / 4);
+      forward(SQUARE_LENGTH, 0);
+      rotate(FULL_TURN / 4);
+    }
+  }
+
+  void move(double distance) {
+
+    leftMotor.setSpeed(FORWARD_SPEED);
+    rightMotor.setSpeed(FORWARD_SPEED);
+    leftMotor.rotate(convertDistance(leftRadius, distance), true);
+    rightMotor.rotate(convertDistance(rightRadius, distance), true);
+
   }
 
   /**
@@ -298,9 +362,8 @@ public class Navigation { // TODO missing comment
     rightMotor.setSpeed(ROTATE_SPEED);
 
     leftMotor.rotate(convertAngle(leftRadius, track, theta), true);
-    rightMotor.rotate(-convertAngle(rightRadius, track, theta), false); // The false is to ensure
-                                                                        // the rotation finish
-                                                                        // before continuing.
+    rightMotor.rotate(-convertAngle(rightRadius, track, theta), false);
+    // The false is to ensure the rotation finish before continuing.
 
   }
 

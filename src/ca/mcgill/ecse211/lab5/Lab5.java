@@ -34,16 +34,17 @@ public class Lab5 { // TODO missing comment
       new EV3MediumRegulatedMotor(LocalEV3.get().getPort("C"));
 
   private static final Port usPort = LocalEV3.get().getPort("S1"); // Ultrasonic sensor port
-  private static final Port portColor = LocalEV3.get().getPort("S2"); // Light sensor port
-
-  private static final Port colorPort = LocalEV3.get().getPort("S3"); // Light sensor port for color
+  private static final Port portColor1 = LocalEV3.get().getPort("S2"); // Light sensor port1
+  private static final Port portColor2 = LocalEV3.get().getPort("S3"); // Light sensor port2
+  private static final Port colorPort = LocalEV3.get().getPort("S4"); // Light sensor port for color
                                                                       // detection
 
   private static final TextLCD lcd = LocalEV3.get().getTextLCD(); // The LCD display
   public static final double WHEEL_RAD = 2.1; // The radius of the wheel measured
   public static final double TRACK = 11.35; // The width of the robot measured
   public static final int FULL_TURN = 360; // 360 degree for a circle
-  private static final double SCAN_DISTANCE = 7; // The detect a can distance TODO
+  private static final double SCAN_DISTANCE = 5; // The detect a can distance TODO
+  private static final double SCAN_OUT_OF_BOUND = 255; // Too close, out of bound TODO
 
   /**
    * @param args
@@ -70,11 +71,17 @@ public class Lab5 { // TODO missing comment
     float[] usData = new float[usDistance.sampleSize()]; // usData is the buffer where data is
                                                          // stored
 
-    // Sensor related objects
+    // Sensor1 related objects
     // Necessary for creating a light sensor that reads the color
-    SensorModes myColor = new EV3ColorSensor(portColor); // Get sensor instance
-    SampleProvider myColorStatus = myColor.getMode("RGB"); // Get sample provider as "RGB"
-    float[] sampleColor = new float[myColorStatus.sampleSize()]; // Create a data buffer
+    SensorModes myColor1 = new EV3ColorSensor(portColor1); // Get sensor instance
+    SampleProvider myColorStatus1 = myColor1.getMode("RGB"); // Get sample provider as "RGB"
+    float[] sampleColor1 = new float[myColorStatus1.sampleSize()]; // Create a data buffer
+
+    // Sensor1 related objects
+    // Necessary for creating a light sensor that reads the color
+    SensorModes myColor2 = new EV3ColorSensor(portColor2); // Get sensor instance
+    SampleProvider myColorStatus2 = myColor2.getMode("RGB"); // Get sample provider as "RGB"
+    float[] sampleColor2 = new float[myColorStatus2.sampleSize()]; // Create a data buffer
 
     // Sensor related objects
     // Necessary for creating a light sensor that reads the color
@@ -85,17 +92,20 @@ public class Lab5 { // TODO missing comment
     ColorClassification colorclassification =
         new ColorClassification(usDistance, usData, colorReading, colorData);
 
+    LineCorrection linecorrection =
+        new LineCorrection(myColorStatus1, sampleColor1, myColorStatus2, sampleColor2);
+
     // Navigation related objects
     // The navigation instance for creating a thread
     Navigation navigation = new Navigation(odometer, leftMotor, rightMotor, sensorMotor,
-        colorclassification, WHEEL_RAD, WHEEL_RAD, TRACK);
+        colorclassification, linecorrection, WHEEL_RAD, WHEEL_RAD, TRACK);
 
     SearchCan searchcan = new SearchCan(TRACK, odometer, navigation, colorclassification);
 
     // LightLocalizer related objects
     // The lightlocalizer instance for creating a thread
     LightLocalizer lightlocalizer = new LightLocalizer(odometer, leftMotor, rightMotor, WHEEL_RAD,
-        WHEEL_RAD, TRACK, myColorStatus, sampleColor, navigation, searchcan);
+        WHEEL_RAD, TRACK, linecorrection, navigation, searchcan);
 
     // UltrasonicLocalizer related objects
     // The uslocalizer instance for creating a thread
@@ -105,14 +115,13 @@ public class Lab5 { // TODO missing comment
     // Display related objects
     // The display instance for updating the odometer reading to the LCD display
     Display odometryDisplay = new Display(lcd); // No need to change
-    
+
     // navigation.goTo(0, 30.48, 4);
-    
-    sensorMotor.rotate(FULL_TURN / 4, false);
-    sensorMotor.stop(false);
+
     // The color classification
     while (Button.readButtons() != Button.ID_ESCAPE) {
-      if (Math.abs(colorclassification.median_filter() - SCAN_DISTANCE) < 0.5) {
+      if (colorclassification.median_filter() < SCAN_DISTANCE
+          || colorclassification.median_filter() > SCAN_OUT_OF_BOUND) {
         lcd.drawString("Object Detected", 0, 0);
         if (colorclassification.colorDetect(1)) { // Blue detect
           lcd.drawString("Blue", 0, 1);
@@ -142,9 +151,7 @@ public class Lab5 { // TODO missing comment
       }
       lcd.clear();
     }
-    sensorMotor.rotate(-FULL_TURN / 4, false);
-    sensorMotor.stop(false);
-    
+
     // Asking for user choice
     do {
       // clear the display
@@ -193,6 +200,6 @@ public class Lab5 { // TODO missing comment
     // Press escape button to exit the program
     while (Button.waitForAnyPress() != Button.ID_ESCAPE);
     System.exit(0);
-    
+
   }
 }

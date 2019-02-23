@@ -160,7 +160,7 @@ public class UltrasonicLocalizer implements Runnable { // TODO missing comment
     alpha = (first + last) / 2;
 
     navigation.rotate(-FULL_TURN / 4); // The robot will rotate 90 degrees first before the next
-                                     // detect, to avoid detecting the same wall twice
+    // detect, to avoid detecting the same wall twice
 
     // Detect left wall
     navigation.turn(-FULL_TURN);
@@ -205,8 +205,8 @@ public class UltrasonicLocalizer implements Runnable { // TODO missing comment
   }
 
   /**
-   * The detect for the falling edge (as the sensor is approaching the wall)
-   * The method that will record first and last angle used for calculating the alpha and beta
+   * The detect for the falling edge (as the sensor is approaching the wall) The method that will
+   * record first and last angle used for calculating the alpha and beta
    */
   void fallingDetect() {
     count = 0;
@@ -226,8 +226,8 @@ public class UltrasonicLocalizer implements Runnable { // TODO missing comment
   }
 
   /**
-   * The detect for the rising edge (as the sensor is turning away from the wall)
-   * The method that will record first and last angle used for calculating the alpha and beta
+   * The detect for the rising edge (as the sensor is turning away from the wall) The method that
+   * will record first and last angle used for calculating the alpha and beta
    */
   void risingDetect() {
     count = 0;
