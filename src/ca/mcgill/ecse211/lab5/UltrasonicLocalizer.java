@@ -67,7 +67,7 @@ public class UltrasonicLocalizer implements Runnable {
    */
   public UltrasonicLocalizer(Odometer odometer, EV3LargeRegulatedMotor leftMotor,
       EV3LargeRegulatedMotor rightMotor, double leftRadius, double rightRadius, double track,
-      SampleProvider us, float[] usData) throws OdometerExceptions {
+      SampleProvider us, float[] usData, Navigation navigation) throws OdometerExceptions {
     this.odometer = odometer;
     this.leftMotor = leftMotor;
     this.rightMotor = rightMotor;
@@ -77,6 +77,7 @@ public class UltrasonicLocalizer implements Runnable {
 
     this.us = us;
     this.usData = usData;
+    this.navigation = navigation;
   }
 
   /**

@@ -95,12 +95,6 @@ public class Lab5 {
 
     Display odometryDisplay = new Display(lcd);
 
-    UltrasonicLocalizer uslocalizer = new UltrasonicLocalizer(odometer, leftMotor, rightMotor,
-        WHEEL_RAD, WHEEL_RAD, TRACK, usDistance, usData);
-
-    LightLocalizer lightlocalizer =
-        new LightLocalizer(odometer, leftMotor, rightMotor, WHEEL_RAD, WHEEL_RAD, TRACK);
-
     ColorClassification colorclassification =
         new ColorClassification(usDistance, usData, colorReading, colorData);
 
@@ -109,6 +103,12 @@ public class Lab5 {
     
     Navigation navigation = new Navigation(odometer, leftMotor, rightMotor, sensorMotor,
         colorclassification, linecorrection, WHEEL_RAD, WHEEL_RAD, TRACK);
+    
+    UltrasonicLocalizer uslocalizer = new UltrasonicLocalizer(odometer, leftMotor, rightMotor,
+        WHEEL_RAD, WHEEL_RAD, TRACK, usDistance, usData, navigation);
+
+    LightLocalizer lightlocalizer =
+        new LightLocalizer(odometer, leftMotor, rightMotor, WHEEL_RAD, WHEEL_RAD, TRACK, navigation, linecorrection);
 
     SearchCan searchcan = new SearchCan(TRACK, odometer, navigation, colorclassification);
     
@@ -146,8 +146,7 @@ public class Lab5 {
     // Starting localization thread
     UltrasonicLocalizer.OPTION = false; // The user is choosing rising edge
 
-    /*
-    // Start the thread for us localizer
+    /*// Start the thread for us localizer
     Thread usThread = new Thread(uslocalizer);
     usThread.start();
     usThread.join();
@@ -155,8 +154,7 @@ public class Lab5 {
     // Start the thread for light localizer
     Thread lightThread = new Thread(lightlocalizer);
     lightThread.start();
-    lightThread.join();
-    */
+    lightThread.join();*/
 
     // Start the thread for can searching
     Thread scThread = new Thread(searchcan);

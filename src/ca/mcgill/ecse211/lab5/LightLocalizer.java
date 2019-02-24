@@ -64,7 +64,7 @@ public class LightLocalizer implements Runnable {
    * @throws OdometerExceptions
    */
   public LightLocalizer(Odometer odometer, EV3LargeRegulatedMotor leftMotor,
-      EV3LargeRegulatedMotor rightMotor, double leftRadius, double rightRadius, double track)
+      EV3LargeRegulatedMotor rightMotor, double leftRadius, double rightRadius, double track, Navigation navigation, LineCorrection linecorrection)
       throws OdometerExceptions {
     this.odometer = odometer;
     this.leftMotor = leftMotor;
@@ -72,6 +72,8 @@ public class LightLocalizer implements Runnable {
     this.leftRadius = leftRadius;
     this.rightRadius = rightRadius;
     this.track = track;
+    this.navigation = navigation;
+    this.linecorrection = linecorrection;
   }
 
   /**
@@ -159,7 +161,7 @@ public class LightLocalizer implements Runnable {
         line[0] = line[1] = false;
         leftMotor.stop(true);
         rightMotor.stop(false);
-        double dtheta = Math.atan(((time[1] - time[0]) * Navigation.FORWARD_SPEED) / track);
+        double dtheta = Math.atan(((time[1] - time[0]) * Navigation.FORWARD_SPEED * Math.PI * leftRadius) / (track * 180));
         before = odometer.getXYT()[2];
         navigation.rotate(-dtheta);
         odometer.setTheta(before);
