@@ -3,9 +3,7 @@ package ca.mcgill.ecse211.lab5;
 import java.util.Arrays;
 import ca.mcgill.ecse211.odometer.Odometer;
 import ca.mcgill.ecse211.odometer.OdometerExceptions;
-import lejos.hardware.Button;
 import lejos.hardware.Sound;
-import lejos.hardware.lcd.TextLCD;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 import lejos.robotics.SampleProvider;
 
@@ -30,7 +28,6 @@ public class UltrasonicLocalizer implements Runnable { // TODO missing comment
   public static final int FULL_TURN = 360; // 360 degree for a circle
   private static final int ACCELERATION = 3000; // The acceleration of the motor
 
-  private TextLCD lcd; // The lcd display
   private Odometer odometer; // The odometer instance
   private EV3LargeRegulatedMotor leftMotor; // The left motor of the robot
   private EV3LargeRegulatedMotor rightMotor; // The right motor of the robot
@@ -42,7 +39,6 @@ public class UltrasonicLocalizer implements Runnable { // TODO missing comment
   private SampleProvider us; // The sample provider for the ultrasonic sensor
   private float[] usData; // The data buffer for the ultrasonic sensor reading
   private Navigation navigation; // The instance of navigation
-  private LightLocalizer lightlocalizer; // The instance of light localizer
 
   int d = 40; // An arbitrary distance that the robot record the angle (first/last below)
   int k = 1; // To eliminate the noise
@@ -71,7 +67,7 @@ public class UltrasonicLocalizer implements Runnable { // TODO missing comment
    */
   public UltrasonicLocalizer(Odometer odometer, EV3LargeRegulatedMotor leftMotor,
       EV3LargeRegulatedMotor rightMotor, double leftRadius, double rightRadius, double track,
-      SampleProvider us, float[] usData, TextLCD lcd) throws OdometerExceptions {
+      SampleProvider us, float[] usData) throws OdometerExceptions {
     this.odometer = odometer;
     this.leftMotor = leftMotor;
     this.rightMotor = rightMotor;
@@ -81,7 +77,6 @@ public class UltrasonicLocalizer implements Runnable { // TODO missing comment
 
     this.us = us;
     this.usData = usData;
-    this.lcd = lcd;
   }
 
   /**
@@ -132,10 +127,6 @@ public class UltrasonicLocalizer implements Runnable { // TODO missing comment
     odometer.position[2] = 0; // Reset the angle of the odometer
     odometer.setTheta(0); // Reset the angle of the odometerData
 
-    lcd.drawString("Waiting for a press", 0, 3); // Show the user the program is waiting for input
-                                                 // to continue
-    Button.waitForAnyPress();
-    lcd.clear(3); // Clear the sentence
   }
 
   /**
