@@ -3,6 +3,7 @@ package ca.mcgill.ecse211.lab5;
 import ca.mcgill.ecse211.odometer.*;
 import ca.mcgill.ecse211.odometer.OdometerExceptions;
 import lejos.hardware.Sound;
+import lejos.hardware.lcd.LCD;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 import lejos.hardware.motor.EV3MediumRegulatedMotor;
 
@@ -152,10 +153,11 @@ public class Navigation {
 
     while (leftMotor.isMoving() || rightMotor.isMoving()) { // If the robot is moving
 
-      /*
-       * if (!corrected) { correctAngle(); flag = 1; goTo(x, y, position); }
-       */
-
+      if (!corrected) {
+        correctAngle(x, y, position);
+        flag = 1;
+      }
+      
       warning = colorclassification.median_filter();
       if (warning < SCAN_DISTANCE) { // TODO
         Sound.beepSequenceUp();
@@ -195,7 +197,7 @@ public class Navigation {
 
   }
 
-  void correctAngle() {
+  void correctAngle(double x, double y, int position) {
     if (linecorrection.filter1()) { // If the black line is detected, the robot will stop
       time[0] = System.currentTimeMillis();
       line[0] = true;
@@ -204,16 +206,23 @@ public class Navigation {
       time[1] = System.currentTimeMillis();
       line[1] = true;
     }
+    
     if (line[0] && line[1]) {
-      line[0] = line[1] = false;
+      line[0] = false;
+      line[1] = false;
       leftMotor.stop(true);
       rightMotor.stop(false);
-      double dtheta = Math.atan(((time[1] - time[0]) * Navigation.FORWARD_SPEED) / track);
+      double dtheta = Math.atan(((time[1] - time[0]) * FORWARD_SPEED * Math.PI * leftRadius) / (track * 180));
       before = odometer.getXYT()[2];
       rotate(-dtheta);
       odometer.setTheta(before);
       odometer.position[2] = before;
       corrected = true;
+      try {
+        Thread.sleep(5000);
+      } catch (Exception e) {
+      }
+      goTo(x, y, position);
     }
   }
 

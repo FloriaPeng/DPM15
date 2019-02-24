@@ -3,6 +3,7 @@ package ca.mcgill.ecse211.lab5;
 
 import ca.mcgill.ecse211.odometer.*;
 import lejos.hardware.Button;
+import lejos.hardware.Sound;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.lcd.TextLCD;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
@@ -105,22 +106,20 @@ public class Lab5 {
 
     LineCorrection linecorrection =
         new LineCorrection(myColorStatus1, sampleColor1, myColorStatus2, sampleColor2);
-
+    
     Navigation navigation = new Navigation(odometer, leftMotor, rightMotor, sensorMotor,
         colorclassification, linecorrection, WHEEL_RAD, WHEEL_RAD, TRACK);
 
     SearchCan searchcan = new SearchCan(TRACK, odometer, navigation, colorclassification);
-
-    // Print instruction
-    lcd.drawString("Press ESC to start searching", 0, 4);
-
-
+    
+    Sound.beepSequence();
     // The color classification until ESC pressed
     while (Button.readButtons() != Button.ID_ESCAPE) {
+      // Print instruction
+      lcd.drawString("Press ESC to start searching", 0, 2);
       if (colorclassification.median_filter() < SCAN_DISTANCE
           || colorclassification.median_filter() > SCAN_OUT_OF_BOUND) {
         lcd.drawString("Object Detected", 0, 0);
-
         if (colorclassification.colorDetect(1)) { // Blue detect
           lcd.drawString("Blue", 0, 1);
         } else if (colorclassification.colorDetect(2)) { // Green detect
@@ -133,11 +132,11 @@ public class Lab5 {
         try {
           Thread.sleep(1000);
         } catch (Exception e) {
-
         }
       }
       lcd.clear();
     }
+    Sound.beepSequenceUp();
 
     Thread odoThread = new Thread(odometer);
     odoThread.start();
