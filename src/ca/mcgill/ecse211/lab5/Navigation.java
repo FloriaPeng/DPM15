@@ -22,8 +22,8 @@ public class Navigation { // TODO missing comment
   private static final int ACCELERATION = 3000; // The acceleration of the motor
   private static final double SCAN_DISTANCE = 7; // The detect a can distance TODO
   public static final int FULL_TURN = 360; // 360 degree for a circle
-  private static final double PREPARE_SQUARE = 30.48/2; // TODO
-  private static final double SQUARE_LENGTH = 30.48/2; // TODO
+  private static final double PREPARE_SQUARE = 30.48 / 2; // TODO
+  private static final double SQUARE_LENGTH = 30.48 / 2; // TODO
 
   private LineCorrection linecorrection; // The instance of line correction
   private EV3LargeRegulatedMotor leftMotor; // The left motor of the robot
@@ -153,12 +153,8 @@ public class Navigation { // TODO missing comment
     while (leftMotor.isMoving() || rightMotor.isMoving()) { // If the robot is moving
 
       /*
-      if (!corrected) {
-        correctAngle();
-        flag = 1;
-        goTo(x, y, position);
-      }
-      */
+       * if (!corrected) { correctAngle(); flag = 1; goTo(x, y, position); }
+       */
 
       warning = colorclassification.median_filter();
       if (warning < SCAN_DISTANCE) { // TODO
@@ -168,7 +164,7 @@ public class Navigation { // TODO missing comment
         rightMotor.setAcceleration(ACCELERATION);
         leftMotor.stop(true);
         rightMotor.stop(false);
-        
+
         move(3);
 
         Thread classificationThread = new Thread(colorclassification);
@@ -222,7 +218,7 @@ public class Navigation { // TODO missing comment
   }
 
   void canAvoidance(int position) {
-    back((PREPARE_SQUARE - 2.9), 0);    //diameter of can = 5.8cm
+    back((PREPARE_SQUARE - 2.9), 0); // diameter of can = 5.8cm
     if (position == 0) { // right side can
       rotate(-90);
       forward(SQUARE_LENGTH, 0);
@@ -239,7 +235,7 @@ public class Navigation { // TODO missing comment
       rotate(90);
       forward(SQUARE_LENGTH, 0);
       rotate(-90);
-      forward(SQUARE_LENGTH  * 2, 0);
+      forward(SQUARE_LENGTH * 2, 0);
       rotate(-90);
       forward(SQUARE_LENGTH, 0);
       rotate(90);
