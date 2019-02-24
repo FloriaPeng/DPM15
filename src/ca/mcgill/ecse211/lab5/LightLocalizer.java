@@ -30,7 +30,6 @@ public class LightLocalizer implements Runnable { // TODO missing comment
 
   private LineCorrection linecorrection; // The instance of line correction
   private Navigation navigation; // The instance of sensor rotation
-  private SearchCan searchcan;
 
   public static final double TILE_SIZE = 30.48; // The tile size used for demo
   public static final int FACING_CORNER = 225; // Angle facing the corner
