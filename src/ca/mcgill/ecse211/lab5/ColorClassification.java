@@ -31,7 +31,7 @@ public class ColorClassification implements Runnable { // TODO missing comment
       {(float) 0.836237, (float) 0.536426, (float) 0.127190};
   public static final float[] MEAN_RED_HAT = {(float) 0.990418, (float) 0.105019, (float) 0.089437};
   
-  public static final float[] STD_BLUE_HAT = {(float) 0.030395, (float) 0.038519, (float) 0.031857};
+  public static final float[] STD_BLUE_HAT = {(float) 0.030395, (float) 0.038519, (float) 0.018570};
   public static final float[] STD_GREEN_HAT =
       {(float) 0.034945, (float) 0.017382, (float) 0.042392};
   public static final float[] STD_YELLOW_HAT =

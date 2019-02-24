@@ -1,6 +1,7 @@
 package ca.mcgill.ecse211.lab5;
 
 import lejos.hardware.Sound;
+import lejos.hardware.lcd.LCD;
 import lejos.robotics.SampleProvider;
 
 public class LineCorrection {
@@ -10,8 +11,8 @@ public class LineCorrection {
   private SampleProvider myColorStatus2; // The sample provider for the color sensor
   private float[] sampleColor2; // The data buffer for the color sensor reading
 
-  double last = Math.PI; // Initialize the last variable to a specific number
-  double current = 0; // last and current are both used for differential filter
+  double[] last = {Math.PI, Math.PI}; // Initialize the last variable to a specific number
+  double[] current = {0, 0}; // last and current are both used for differential filter
 
   public LineCorrection(SampleProvider myColorStatus1, float[] sampleColor1,
       SampleProvider myColorStatus2, float[] sampleColor2) {
@@ -32,17 +33,20 @@ public class LineCorrection {
   boolean filter1() { // Differential filter
 
     myColorStatus1.fetchSample(sampleColor1, 0); // Used for obtaining color reading from the
-    // SampleProvider
+                                                 // SampleProvider
+    LCD.drawString("" + sampleColor1[0], 0, 3);
 
-    if (Math.abs(last - Math.PI) < Math.pow(0.1, 5)) { // If last has not been assigned for any
-                                                       // number yet
-      last = current = sampleColor1[0];
+    if (Math.abs(last[0] - Math.PI) < Math.pow(0.1, 5)) { // If last has not been assigned for any
+      // number yet
+      last[0] = current[0] = sampleColor1[0];
     } else {
-      last = current; // Update the last
-      current = sampleColor1[0]; // Update the current
+      last[0] = current[0]; // Update the last
+      current[0] = sampleColor1[0]; // Update the current
     }
 
-    if ((current - last) / 0.01 < -0.7) { // If there is a black line detected
+    // LCD.drawString("" + (current[0] - last[0]) / 0.01, 0, 3);
+
+    if ((current[0] - last[0]) / 0.01 < -7) { // If there is a black line detected
       Sound.beep();
       return true;
     }
@@ -58,17 +62,20 @@ public class LineCorrection {
   boolean filter2() { // Differential filter
 
     myColorStatus2.fetchSample(sampleColor2, 0); // Used for obtaining color reading from the
-    // SampleProvider
+                                                 // SampleProvider
+    LCD.drawString("" + sampleColor2[0], 0, 4);
 
-    if (Math.abs(last - Math.PI) < Math.pow(0.1, 5)) { // If last has not been assigned for any
-                                                       // number yet
-      last = current = sampleColor2[0];
+    if (Math.abs(last[1] - Math.PI) < Math.pow(0.1, 5)) { // If last has not been assigned for any
+      // number yet
+      last[1] = current[1] = sampleColor2[0];
     } else {
-      last = current; // Update the last
-      current = sampleColor2[0]; // Update the current
+      last[1] = current[1]; // Update the last
+      current[1] = sampleColor2[0]; // Update the current
     }
 
-    if ((current - last) / 0.01 < -0.7) { // If there is a black line detected
+    // LCD.drawString("" + (current[1] - last[1]) / 0.01, 0, 4);
+
+    if ((current[1] - last[1]) / 0.01 < -7) { // If there is a black line detected
       Sound.beep();
       return true;
     }

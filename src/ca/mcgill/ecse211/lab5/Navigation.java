@@ -17,13 +17,13 @@ import lejos.hardware.motor.EV3MediumRegulatedMotor;
 public class Navigation { // TODO missing comment
 
   private Odometer odometer; // The odometer instance
-  public static final int FORWARD_SPEED = 200; // The forward speed for the robot
+  public static final int FORWARD_SPEED = 180; // The forward speed for the robot
   public static final int ROTATE_SPEED = 100; // The rotation speed for the robot
   private static final int ACCELERATION = 3000; // The acceleration of the motor
   private static final double SCAN_DISTANCE = 7; // The detect a can distance TODO
   public static final int FULL_TURN = 360; // 360 degree for a circle
-  private static final double PREPARE_SQUARE = 26 / 2; // TODO
-  private static final double SQUARE_LENGTH = 26; // TODO
+  private static final double PREPARE_SQUARE = 30.48 / 2; // TODO
+  private static final double SQUARE_LENGTH = 30.48 / 2; // TODO
 
   private LineCorrection linecorrection; // The instance of line correction
   private EV3LargeRegulatedMotor leftMotor; // The left motor of the robot
@@ -152,11 +152,9 @@ public class Navigation { // TODO missing comment
 
     while (leftMotor.isMoving() || rightMotor.isMoving()) { // If the robot is moving
 
-      if (!corrected) {
-        correctAngle();
-        flag = 1;
-        goTo(x, y, position);
-      }
+      /*
+       * if (!corrected) { correctAngle(); flag = 1; goTo(x, y, position); }
+       */
 
       warning = colorclassification.median_filter();
       if (warning < SCAN_DISTANCE) { // TODO
@@ -166,6 +164,8 @@ public class Navigation { // TODO missing comment
         rightMotor.setAcceleration(ACCELERATION);
         leftMotor.stop(true);
         rightMotor.stop(false);
+
+        move(3);
 
         Thread classificationThread = new Thread(colorclassification);
         classificationThread.start();
@@ -182,12 +182,12 @@ public class Navigation { // TODO missing comment
           colorclassification.found = true;
           Sound.beep();
           sensorMotor.setSpeed(ROTATE_SPEED);
-          sensorMotor.rotate(FULL_TURN, false);
+          sensorMotor.rotate(-FULL_TURN, false);
           return;
         } else {
           Sound.twoBeeps();
           sensorMotor.setSpeed(ROTATE_SPEED);
-          sensorMotor.rotate(FULL_TURN, false);
+          sensorMotor.rotate(-FULL_TURN, false);
           canAvoidance(position);
         }
       }
@@ -218,27 +218,27 @@ public class Navigation { // TODO missing comment
   }
 
   void canAvoidance(int position) {
-    back(PREPARE_SQUARE, 0);
+    back((PREPARE_SQUARE - 2.9), 0); // diameter of can = 5.8cm
     if (position == 0) { // right side can
-      rotate(-FULL_TURN / 4);
+      rotate(-90);
       forward(SQUARE_LENGTH, 0);
-      rotate(FULL_TURN / 4);
-      forward(SQUARE_LENGTH, 0);
-      rotate(-FULL_TURN / 4);
+      rotate(90);
+      forward(SQUARE_LENGTH * 2, 0);
+      rotate(-90);
     } else if (position == 1) { // left side can
-      rotate(FULL_TURN / 4);
+      rotate(90);
       forward(SQUARE_LENGTH, 0);
-      rotate(-FULL_TURN / 4);
-      forward(SQUARE_LENGTH, 0);
-      rotate(FULL_TURN / 4);
+      rotate(-90);
+      forward(SQUARE_LENGTH * 2, 0);
+      rotate(90);
     } else if (position == 2) { // straight line can
-      rotate(FULL_TURN / 4);
+      rotate(90);
       forward(SQUARE_LENGTH, 0);
-      rotate(-FULL_TURN / 4);
+      rotate(-90);
+      forward(SQUARE_LENGTH * 2, 0);
+      rotate(-90);
       forward(SQUARE_LENGTH, 0);
-      rotate(-FULL_TURN / 4);
-      forward(SQUARE_LENGTH, 0);
-      rotate(FULL_TURN / 4);
+      rotate(90);
     }
   }
 

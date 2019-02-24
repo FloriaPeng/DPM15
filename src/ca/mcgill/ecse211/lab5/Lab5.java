@@ -37,7 +37,7 @@ public class Lab5 { // TODO missing comment
   private static final Port portColor1 = LocalEV3.get().getPort("S2"); // Light sensor port1
   private static final Port portColor2 = LocalEV3.get().getPort("S3"); // Light sensor port2
   private static final Port colorPort = LocalEV3.get().getPort("S1"); // Light sensor port for color
-                                                                      // detection
+  // detection
 
   private static final TextLCD lcd = LocalEV3.get().getTextLCD(); // The LCD display
   public static final double WHEEL_RAD = 2.1; // The radius of the wheel measured
@@ -48,46 +48,57 @@ public class Lab5 { // TODO missing comment
 
   /**
    * @param args
+   * 
    * @throws OdometerExceptions
+   * @throws InterruptedException
    * 
    *         The main method for Lab3 class. This class will pass the user choice to the
    *         UltrasonicLocalizer class, and start the threads used for the UltrasonicLocalizer.
    * 
    */
   @SuppressWarnings("resource")
-  public static void main(String[] args) throws OdometerExceptions {
+  public static void main(String[] args) throws OdometerExceptions, InterruptedException {
 
-    int buttonChoice;
+    /*
+     * Sensor related objects
+     */
 
-    // Odometer related objects
-    // Create the odometer of the robot
-    Odometer odometer = Odometer.getOdometer(leftMotor, rightMotor, TRACK, WHEEL_RAD);
-
-    // Sensor related objects
-    // Necessary for creating a ultrasonic sensor that reads in distance
+    // US Sensor (Obstacle Detection, Front)
     SensorModes usSensor = new EV3UltrasonicSensor(usPort); // Create usSensor instance
     SampleProvider usDistance = usSensor.getMode("Distance"); // usDistance provides samples from
-                                                              // the instance
+    // the instance
     float[] usData = new float[usDistance.sampleSize()]; // usData is the buffer where data is
-                                                         // stored
+    // stored
 
-    // Sensor1 related objects
-    // Necessary for creating a light sensor that reads the color
+    // Color Sensor (Line Detection, Left)
     SensorModes myColor1 = new EV3ColorSensor(portColor1); // Get sensor instance
     SampleProvider myColorStatus1 = myColor1.getMode("RGB"); // Get sample provider as "RGB"
     float[] sampleColor1 = new float[myColorStatus1.sampleSize()]; // Create a data buffer
 
-    // Sensor1 related objects
-    // Necessary for creating a light sensor that reads the color
+    // Color Sensor (Line Detection, Right)
     SensorModes myColor2 = new EV3ColorSensor(portColor2); // Get sensor instance
     SampleProvider myColorStatus2 = myColor2.getMode("RGB"); // Get sample provider as "RGB"
     float[] sampleColor2 = new float[myColorStatus2.sampleSize()]; // Create a data buffer
 
-    // Sensor related objects
-    // Necessary for creating a light sensor that reads the color
+    // Color Sensor (Color Classification, Front)
     SensorModes colorSensor = new EV3ColorSensor(colorPort); // Get sensor instance
     SampleProvider colorReading = colorSensor.getMode("RGB"); // Get sample provider as "RGB"
     float[] colorData = new float[colorReading.sampleSize()]; // Create a data buffer
+
+
+    /*
+     * Obtaining Instances
+     */
+
+    Odometer odometer = Odometer.getOdometer(leftMotor, rightMotor, TRACK, WHEEL_RAD);
+
+    Display odometryDisplay = new Display(lcd);
+
+    UltrasonicLocalizer uslocalizer = new UltrasonicLocalizer(odometer, leftMotor, rightMotor,
+        WHEEL_RAD, WHEEL_RAD, TRACK, usDistance, usData);
+
+    LightLocalizer lightlocalizer =
+        new LightLocalizer(odometer, leftMotor, rightMotor, WHEEL_RAD, WHEEL_RAD, TRACK);
 
     ColorClassification colorclassification =
         new ColorClassification(usDistance, usData, colorReading, colorData);
@@ -95,36 +106,21 @@ public class Lab5 { // TODO missing comment
     LineCorrection linecorrection =
         new LineCorrection(myColorStatus1, sampleColor1, myColorStatus2, sampleColor2);
 
-    // Navigation related objects
-    // The navigation instance for creating a thread
     Navigation navigation = new Navigation(odometer, leftMotor, rightMotor, sensorMotor,
         colorclassification, linecorrection, WHEEL_RAD, WHEEL_RAD, TRACK);
 
     SearchCan searchcan = new SearchCan(TRACK, odometer, navigation, colorclassification);
 
-    // LightLocalizer related objects
-    // The lightlocalizer instance for creating a thread
-    LightLocalizer lightlocalizer = new LightLocalizer(odometer, leftMotor, rightMotor, WHEEL_RAD,
-        WHEEL_RAD, TRACK, linecorrection, navigation, searchcan);
+    // Print instruction
+    lcd.drawString("Press ESC to start searching", 0, 4);
 
-    // UltrasonicLocalizer related objects
-    // The uslocalizer instance for creating a thread
-    UltrasonicLocalizer uslocalizer = new UltrasonicLocalizer(odometer, leftMotor, rightMotor,
-        WHEEL_RAD, WHEEL_RAD, TRACK, usDistance, usData, navigation, lightlocalizer, lcd);
 
-    // Display related objects
-    // The display instance for updating the odometer reading to the LCD display
-    Display odometryDisplay = new Display(lcd); // No need to change
-
-    // navigation.goTo(0, 30.48, 4);
-    /*sensorMotor.setSpeed(200 / 4);
-    sensorMotor.rotate(FULL_TURN);*/
-
-    // The color classification
+    // The color classification until ESC pressed
     while (Button.readButtons() != Button.ID_ESCAPE) {
       if (colorclassification.median_filter() < SCAN_DISTANCE
           || colorclassification.median_filter() > SCAN_OUT_OF_BOUND) {
         lcd.drawString("Object Detected", 0, 0);
+
         if (colorclassification.colorDetect(1)) { // Blue detect
           lcd.drawString("Blue", 0, 1);
         } else if (colorclassification.colorDetect(2)) { // Green detect
@@ -135,60 +131,40 @@ public class Lab5 { // TODO missing comment
           lcd.drawString("Red", 0, 1);
         }
         try {
-          Thread.sleep(2000);
+          Thread.sleep(1000);
         } catch (Exception e) {
+
         }
       }
       lcd.clear();
     }
 
-    // Asking for user choice
-    do {
-      // clear the display
-      lcd.clear();
+    Thread odoThread = new Thread(odometer);
+    odoThread.start();
+    Thread odoDisplayThread = new Thread(odometryDisplay);
+    odoDisplayThread.start();
 
-      // Ask the user whether the robot avoid the obstacles or not
-      lcd.drawString("<  Left  |  Right  >", 0, 0);
-      lcd.drawString("         |         ", 0, 1);
-      lcd.drawString(" Falling | Rising  ", 0, 2);
-      lcd.drawString("  Edge   |   Edge  ", 0, 3);
-      lcd.drawString("         |         ", 0, 4);
+    // Starting localization thread
+    UltrasonicLocalizer.OPTION = false; // The user is choosing rising edge
 
-      buttonChoice = Button.waitForAnyPress(); // Record choice (left or right press)
-    } while (buttonChoice != Button.ID_LEFT && buttonChoice != Button.ID_RIGHT);
+    /*
+    // Start the thread for us localizer
+    Thread usThread = new Thread(uslocalizer);
+    usThread.start();
+    usThread.join();
+    
+    // Start the thread for light localizer
+    Thread lightThread = new Thread(lightlocalizer);
+    lightThread.start();
+    lightThread.join();
+    */
 
-    if (buttonChoice == Button.ID_LEFT) { // Falling edge
+    // Start the thread for can searching
+    Thread scThread = new Thread(searchcan);
+    scThread.start();
 
-      UltrasonicLocalizer.OPTION = true; // The user choosing falling edge
-
-      // Starts the thread for odometer and display
-      Thread odoThread = new Thread(odometer);
-      odoThread.start();
-      Thread odoDisplayThread = new Thread(odometryDisplay);
-      odoDisplayThread.start();
-
-      // Starts the thread for us localizer
-      Thread usThread = new Thread(uslocalizer);
-      usThread.start();
-
-    } else { // Rising edge
-
-      UltrasonicLocalizer.OPTION = false; // The user is choosing rising edge
-
-      // Starts odometer and display threads
-      Thread odoThread = new Thread(odometer);
-      odoThread.start();
-      Thread odoDisplayThread = new Thread(odometryDisplay);
-      odoDisplayThread.start();
-
-      // Starts the thread for us localizer
-      Thread usThread = new Thread(uslocalizer);
-      usThread.start();
-
-    }
-
-    // Press escape button to exit the program
-    while (Button.waitForAnyPress() != Button.ID_ESCAPE);
+    // Wait here forever until button pressed to terminate the robot
+    Button.waitForAnyPress();
     System.exit(0);
   }
 }
