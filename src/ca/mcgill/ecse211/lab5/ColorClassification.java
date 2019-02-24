@@ -200,7 +200,6 @@ public class ColorClassification implements Runnable {
       for (int j = 0; j < 3; j++) {
         arr[i][j] = arr[i][j] / norm;
       }
-
     }
     for (int i = 0; i < 5; i++) { // Taking the average
       for (int j = 0; j < 3; j++) {
@@ -209,4 +208,5 @@ public class ColorClassification implements Runnable {
     }
     return RGB; // return average value
   }
+
 }
