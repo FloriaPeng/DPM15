@@ -48,17 +48,16 @@ public class Lab5 { // TODO missing comment
 
   /**
    * @param args
+   * 
    * @throws OdometerExceptions
+   * @throws InterruptedException
    * 
    *         The main method for Lab3 class. This class will pass the user choice to the
    *         UltrasonicLocalizer class, and start the threads used for the UltrasonicLocalizer.
-   * @throws InterruptedException 
    * 
    */
   @SuppressWarnings("resource")
   public static void main(String[] args) throws OdometerExceptions, InterruptedException {
-
-    int buttonChoice;
 
     /*
      * Sensor related objects
@@ -89,17 +88,17 @@ public class Lab5 { // TODO missing comment
 
     /*
      * Obtaining Instances
-     */ 
+     */
 
     Odometer odometer = Odometer.getOdometer(leftMotor, rightMotor, TRACK, WHEEL_RAD);
 
     Display odometryDisplay = new Display(lcd);
 
     UltrasonicLocalizer uslocalizer = new UltrasonicLocalizer(odometer, leftMotor, rightMotor,
-        WHEEL_RAD, WHEEL_RAD, TRACK, usDistance, usData, lcd);
+        WHEEL_RAD, WHEEL_RAD, TRACK, usDistance, usData);
 
-    LightLocalizer lightlocalizer = new LightLocalizer(odometer, leftMotor, rightMotor, WHEEL_RAD,
-        WHEEL_RAD, TRACK);
+    LightLocalizer lightlocalizer =
+        new LightLocalizer(odometer, leftMotor, rightMotor, WHEEL_RAD, WHEEL_RAD, TRACK);
 
     ColorClassification colorclassification =
         new ColorClassification(usDistance, usData, colorReading, colorData);
@@ -113,12 +112,13 @@ public class Lab5 { // TODO missing comment
     SearchCan searchcan = new SearchCan(TRACK, odometer, navigation, colorclassification);
 
     // Print instruction
-    lcd.drawString("Press ESC to start searching", 0,4);
+    lcd.drawString("Press ESC to start searching", 0, 4);
 
 
     // The color classification until ESC pressed
     while (Button.readButtons() != Button.ID_ESCAPE) {
-      if (colorclassification.median_filter() < SCAN_DISTANCE || colorclassification.median_filter() > SCAN_OUT_OF_BOUND) {
+      if (colorclassification.median_filter() < SCAN_DISTANCE
+          || colorclassification.median_filter() > SCAN_OUT_OF_BOUND) {
         lcd.drawString("Object Detected", 0, 0);
 
         if (colorclassification.colorDetect(1)) { // Blue detect
@@ -148,16 +148,16 @@ public class Lab5 { // TODO missing comment
     UltrasonicLocalizer.OPTION = false; // The user is choosing rising edge
 
     /*
-  // Start the thread for us localizer
-  Thread usThread = new Thread(uslocalizer);
-  usThread.start();
-  usThread.join();
-
-  // Start the thread for light localizer
-  Thread lightThread = new Thread(lightlocalizer);
-  lightThread.start();
-  lightThread.join();
-     */
+    // Start the thread for us localizer
+    Thread usThread = new Thread(uslocalizer);
+    usThread.start();
+    usThread.join();
+    
+    // Start the thread for light localizer
+    Thread lightThread = new Thread(lightlocalizer);
+    lightThread.start();
+    lightThread.join();
+    */
 
     // Start the thread for can searching
     Thread scThread = new Thread(searchcan);
