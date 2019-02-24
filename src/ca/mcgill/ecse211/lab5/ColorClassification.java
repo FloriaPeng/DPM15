@@ -84,26 +84,24 @@ public class ColorClassification implements Runnable {
 
     while (true) {
 
-      LCD.clear();
-      LCD.drawString("R: " + mean_filter()[0], 0, 3);
-      LCD.drawString("G: " + mean_filter()[1], 0, 4);
-      LCD.drawString("B: " + mean_filter()[2], 0, 5);
-
-      if (colorDetect(0)) {
+      if (colorDetect(1)) {
         detected[0]++;
-      } else if (colorDetect(1)) {
-        detected[1]++;
       } else if (colorDetect(2)) {
-        detected[2]++;
+        detected[1]++;
       } else if (colorDetect(3)) {
+        detected[2]++;
+      } else if (colorDetect(4)) {
         detected[3]++;
       }
       if (stop) {
+        LCD.clear();
+        LCD.drawString("detected: " + detected[0] + "==" + detected[1] + "==" + detected[2] + "==" + "detected[3]", 0, 3);
         int[] arr = Arrays.copyOf(detected, detected.length);
         Arrays.sort(arr);
-        color = -1;
+        color = 0;
         for (; color < arr.length; color++) {
           if (detected[color] == arr[3]) {
+            color += 1;
             break;
           }
         }
@@ -137,10 +135,6 @@ public class ColorClassification implements Runnable {
         break;
     }
     float[] reading = mean_filter();
-    // LCD.clear();
-    /*LCD.drawString("R: " + reading[0], 0, 2);
-    LCD.drawString("G: " + reading[1], 0, 3);
-    LCD.drawString("B: " + reading[2], 0, 4);*/
     if (Math.abs(reading[0] - target_mean[0]) < 3 * target_std[0]
         && Math.abs(reading[1] - target_mean[1]) < 3 * target_std[1]
         && Math.abs(reading[2] - target_mean[2]) < 3 * target_std[2]) {

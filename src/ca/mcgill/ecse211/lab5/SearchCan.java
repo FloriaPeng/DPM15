@@ -9,7 +9,7 @@ public class SearchCan implements Runnable {
                                                  // 8]
   public static final int[] UPPER_RIGHT = {5, 5}; // The upper-right corner of the search region [0,
                                                   // 8]
-  public static final int TR = 2; // Blue, Green, Yellow, Red [1, 4]
+  public static final int TR = 3; // Blue, Green, Yellow, Red [1, 4]
   public static final int SC = 0; // [0, 3]
 
   public static final double TILE_SIZE = 30.48; // The tile size used for demo

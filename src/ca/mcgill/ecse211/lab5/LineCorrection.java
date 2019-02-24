@@ -34,7 +34,6 @@ public class LineCorrection {
 
     myColorStatus1.fetchSample(sampleColor1, 0); // Used for obtaining color reading from the
                                                  // SampleProvider
-    LCD.drawString("" + sampleColor1[0], 0, 3);
 
     if (Math.abs(last[0] - Math.PI) < Math.pow(0.1, 5)) { // If last has not been assigned for any number yet
       last[0] = current[0] = sampleColor1[0];
@@ -60,7 +59,6 @@ public class LineCorrection {
 
     myColorStatus2.fetchSample(sampleColor2, 0); // Used for obtaining color reading from the
                                                  // SampleProvider
-    LCD.drawString("" + sampleColor2[0], 0, 4);
 
     if (Math.abs(last[1] - Math.PI) < Math.pow(0.1, 5)) { // If last has not been assigned for any number yet
       last[1] = current[1] = sampleColor2[0];

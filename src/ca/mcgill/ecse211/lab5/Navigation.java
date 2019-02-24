@@ -171,8 +171,8 @@ public class Navigation {
 
         Thread classificationThread = new Thread(colorclassification);
         classificationThread.start();
-        sensorMotor.setSpeed(ROTATE_SPEED / 4);
-        sensorMotor.rotate(FULL_TURN, true);
+        sensorMotor.setSpeed(ROTATE_SPEED / 6);
+        sensorMotor.rotate(FULL_TURN - 10, true);
         while (sensorMotor.isMoving()) {
           try {
             Thread.sleep(50);
@@ -180,6 +180,11 @@ public class Navigation {
           }
         }
         colorclassification.stop = true;
+        try {
+          classificationThread.join();
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        }
         if (colorclassification.color == SearchCan.TR) {
           colorclassification.found = true;
           Sound.beep();
@@ -189,7 +194,7 @@ public class Navigation {
         } else {
           Sound.twoBeeps();
           sensorMotor.setSpeed(ROTATE_SPEED);
-          sensorMotor.rotate(-FULL_TURN, false);
+          sensorMotor.rotate(-FULL_TURN + 10, false);
           canAvoidance(position);
         }
       }
@@ -232,19 +237,19 @@ public class Navigation {
       rotate(-90);
       forward(SQUARE_LENGTH, 0);
       rotate(90);
-      forward(SQUARE_LENGTH * 2 + 2.9 * 2, 0);
+      forward(SQUARE_LENGTH * 2 + 2.9, 0);
       rotate(-90);
     } else if (position == 1) { // left side can
       rotate(90);
       forward(SQUARE_LENGTH, 0);
       rotate(-90);
-      forward(SQUARE_LENGTH * 2 + 2.9 * 2, 0);
+      forward(SQUARE_LENGTH * 2 + 2.9, 0);
       rotate(90);
     } else if (position == 2) { // straight line can
       rotate(90);
       forward(SQUARE_LENGTH, 0);
       rotate(-90);
-      forward(SQUARE_LENGTH * 2 + 2.9 * 2, 0);
+      forward(SQUARE_LENGTH * 2 + 2.9, 0);
       rotate(-90);
       forward(SQUARE_LENGTH, 0);
       rotate(90);
