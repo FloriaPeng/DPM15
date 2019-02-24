@@ -13,7 +13,7 @@ public class SearchCan implements Runnable {
   public static final int SC = 0; // [0, 3]
 
   public static final double TILE_SIZE = 30.48; // The tile size used for demo
-  private static final int SLEEP_TIME = 2000; // Reach the lower-left time
+  private static final int SLEEP_TIME = 1000; // Reach the lower-left time
   public static final int FULL_TURN = 360; // 360 degree for a circle
 
   private Odometer odometer;

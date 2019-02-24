@@ -232,19 +232,19 @@ public class Navigation {
       rotate(-90);
       forward(SQUARE_LENGTH, 0);
       rotate(90);
-      forward(SQUARE_LENGTH * 2, 0);
+      forward(SQUARE_LENGTH * 2 + 2.9 * 2, 0);
       rotate(-90);
     } else if (position == 1) { // left side can
       rotate(90);
       forward(SQUARE_LENGTH, 0);
       rotate(-90);
-      forward(SQUARE_LENGTH * 2, 0);
+      forward(SQUARE_LENGTH * 2 + 2.9 * 2, 0);
       rotate(90);
     } else if (position == 2) { // straight line can
       rotate(90);
       forward(SQUARE_LENGTH, 0);
       rotate(-90);
-      forward(SQUARE_LENGTH * 2, 0);
+      forward(SQUARE_LENGTH * 2 + 2.9 * 2, 0);
       rotate(-90);
       forward(SQUARE_LENGTH, 0);
       rotate(90);

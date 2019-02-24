@@ -23,7 +23,7 @@ public class ColorClassification implements Runnable {
       {(float) 0.001904, (float) 0.002950, (float) 0.004110};
   public static final float[] STD_RED_HAT = {(float) 0.000783, (float) 0.004657, (float) 0.004712};*/
   
-  public static final float[] MEAN_BLUE_HAT =
+  /*public static final float[] MEAN_BLUE_HAT =
       {(float) 0.269460, (float) 0.794070, (float) 0.588403};
   public static final float[] MEAN_GREEN_HAT =
       {(float) 0.245649, (float) 0.947591, (float) 0.203922};
@@ -36,7 +36,22 @@ public class ColorClassification implements Runnable {
       {(float) 0.034945, (float) 0.017382, (float) 0.042392};
   public static final float[] STD_YELLOW_HAT =
       {(float) 0.009065, (float) 0.014057, (float) 0.019677};
-  public static final float[] STD_RED_HAT = {(float) 0.004000, (float) 0.025304, (float) 0.024357};
+  public static final float[] STD_RED_HAT = {(float) 0.004000, (float) 0.025304, (float) 0.024357};*/
+  
+  public static final float[] MEAN_BLUE_HAT =
+      {(float) 0.265, (float) 0.775, (float) 0.585};
+  public static final float[] MEAN_GREEN_HAT =
+      {(float) 0.240, (float) 0.950, (float) 0.200};
+  public static final float[] MEAN_YELLOW_HAT =
+      {(float) 0.830, (float) 0.525, (float) 0.125};
+  public static final float[] MEAN_RED_HAT = {(float) 0.960, (float) 0.100, (float) 0.060};
+
+  public static final float[] STD_BLUE_HAT = {(float) 0.030395, (float) 0.025519, (float) 0.036570};
+  public static final float[] STD_GREEN_HAT =
+      {(float) 0.034945, (float) 0.017382, (float) 0.042392};
+  public static final float[] STD_YELLOW_HAT =
+      {(float) 0.020065, (float) 0.024057, (float) 0.019677};
+  public static final float[] STD_RED_HAT = {(float) 0.013000, (float) 0.030304, (float) 0.024357};
 
   private SampleProvider usDistance; // The sample provider for the ultrasonic sensor
   private float[] usData; // The data buffer for the ultrasonic sensor reading
@@ -70,9 +85,9 @@ public class ColorClassification implements Runnable {
     while (true) {
 
       LCD.clear();
-      LCD.drawString("R: " + mean_filter()[0], 0, 0);
-      LCD.drawString("G: " + mean_filter()[1], 0, 1);
-      LCD.drawString("B: " + mean_filter()[2], 0, 2);
+      LCD.drawString("R: " + mean_filter()[0], 0, 3);
+      LCD.drawString("G: " + mean_filter()[1], 0, 4);
+      LCD.drawString("B: " + mean_filter()[2], 0, 5);
 
       if (colorDetect(0)) {
         detected[0]++;
