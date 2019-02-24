@@ -1,0 +1,18 @@
+Mean and standard deviation values
+
+Old values: 
+
+public static final float[] MEAN_BLUE_HAT =
+      {(float) 0.269460, (float) 0.794070, (float) 0.588403};
+  public static final float[] MEAN_GREEN_HAT =
+      {(float) 0.245649, (float) 0.947591, (float) 0.203922};
+  public static final float[] MEAN_YELLOW_HAT =
+      {(float) 0.836237, (float) 0.536426, (float) 0.127190};
+  public static final float[] MEAN_RED_HAT = {(float) 0.990418, (float) 0.105019, (float) 0.089437};
+  
+  public static final float[] STD_BLUE_HAT = {(float) 0.030395, (float) 0.038519, (float) 0.018570};
+  public static final float[] STD_GREEN_HAT =
+      {(float) 0.034945, (float) 0.017382, (float) 0.042392};
+  public static final float[] STD_YELLOW_HAT =
+      {(float) 0.009065, (float) 0.014057, (float) 0.019677};
+  public static final float[] STD_RED_HAT = {(float) 0.004000, (float) 0.025304, (float) 0.024357};
