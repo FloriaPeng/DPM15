@@ -36,15 +36,12 @@ public class LineCorrection {
                                                  // SampleProvider
     LCD.drawString("" + sampleColor1[0], 0, 3);
 
-    if (Math.abs(last[0] - Math.PI) < Math.pow(0.1, 5)) { // If last has not been assigned for any
-      // number yet
+    if (Math.abs(last[0] - Math.PI) < Math.pow(0.1, 5)) { // If last has not been assigned for any number yet
       last[0] = current[0] = sampleColor1[0];
     } else {
       last[0] = current[0]; // Update the last
       current[0] = sampleColor1[0]; // Update the current
     }
-
-    // LCD.drawString("" + (current[0] - last[0]) / 0.01, 0, 3);
 
     if ((current[0] - last[0]) / 0.01 < -7) { // If there is a black line detected
       Sound.beep();
@@ -65,15 +62,12 @@ public class LineCorrection {
                                                  // SampleProvider
     LCD.drawString("" + sampleColor2[0], 0, 4);
 
-    if (Math.abs(last[1] - Math.PI) < Math.pow(0.1, 5)) { // If last has not been assigned for any
-      // number yet
+    if (Math.abs(last[1] - Math.PI) < Math.pow(0.1, 5)) { // If last has not been assigned for any number yet
       last[1] = current[1] = sampleColor2[0];
     } else {
       last[1] = current[1]; // Update the last
       current[1] = sampleColor2[0]; // Update the current
     }
-
-    // LCD.drawString("" + (current[1] - last[1]) / 0.01, 0, 4);
 
     if ((current[1] - last[1]) / 0.01 < -7) { // If there is a black line detected
       Sound.beep();

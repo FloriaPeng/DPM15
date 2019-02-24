@@ -4,7 +4,7 @@ import java.util.Arrays;
 import lejos.hardware.lcd.LCD;
 import lejos.robotics.SampleProvider;
 
-public class ColorClassification implements Runnable { // TODO missing comment
+public class ColorClassification implements Runnable {
 
   // The mean value of the normal plot for blue, green, yellow, red
   // R, G, B

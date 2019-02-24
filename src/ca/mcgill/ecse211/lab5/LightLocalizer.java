@@ -18,7 +18,7 @@ import lejos.hardware.motor.EV3LargeRegulatedMotor;
  *         robot travels to (1,1) again and adjust its angle based on x-error and y error.
  *
  */
-public class LightLocalizer implements Runnable { // TODO missing comment
+public class LightLocalizer implements Runnable {
 
   private Odometer odometer; // The odometer instance
   private EV3LargeRegulatedMotor leftMotor; // The left motor of the robot
