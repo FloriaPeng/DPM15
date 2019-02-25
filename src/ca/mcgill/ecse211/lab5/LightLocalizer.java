@@ -102,7 +102,6 @@ public class LightLocalizer implements Runnable {
     correctAngle();
     navigation.back(0, BACK_DIST); // And then go back a certain distance
     
-    
     /*
     navigation.turn(FULL_TURN); // Then starts rotating clockwise
 
@@ -139,8 +138,6 @@ public class LightLocalizer implements Runnable {
     navigation.turnTo(0);
     */
     
-    
-
     switch (SearchCan.SC) {
       case 0:
         odometer.setXYT(1 * TILE_SIZE, 1 * TILE_SIZE, 0);
@@ -162,24 +159,20 @@ public class LightLocalizer implements Runnable {
   }
 
   void correctAngle() {
-    while (rightMotor.isMoving() || leftMotor.isMoving()) {
-      if (linecorrection.filter1()) { // If the black line is detected, the robot will stop
-        line[0] = true;
-        leftMotor.setAcceleration(ACCELERATION);
+    while (true) {
+      line[0] = linecorrection.filter1();
+      line[1] = linecorrection.filter2();
+      if (line[0]) { // If the black line is detected, the robot will stop
         leftMotor.stop(true);
-        rightMotor.setSpeed(50);
+        //rightMotor.setSpeed(50);
       }
-      if (linecorrection.filter2()) {
-        line[1] = true;
-        rightMotor.setAcceleration(ACCELERATION);
+      if (line[1]) {
         rightMotor.stop(true);
-        leftMotor.setSpeed(50);
+        //leftMotor.setSpeed(50);
       }
-      if (line[0] && line[1]) {
+      if (!leftMotor.isMoving() && !rightMotor.isMoving()) {
         line[0] = false;
         line[1] = false;
-        leftMotor.setAcceleration(ACCELERATION);
-        rightMotor.setAcceleration(ACCELERATION);
         leftMotor.stop(true);
         rightMotor.stop(false);
         if (odometer.getXYT()[2] < 30 || odometer.getXYT()[2] > 330) {
@@ -189,6 +182,7 @@ public class LightLocalizer implements Runnable {
           odometer.setTheta(90);
           odometer.position[2] = Math.toRadians(90);
         }
+        break;
       }
     }
   }

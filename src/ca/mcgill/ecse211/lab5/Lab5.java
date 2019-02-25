@@ -66,19 +66,17 @@ public class Lab5 {
 
     // US Sensor (Obstacle Detection, Front)
     SensorModes usSensor = new EV3UltrasonicSensor(usPort); // Create usSensor instance
-    SampleProvider usDistance = usSensor.getMode("Distance"); // usDistance provides samples from
-    // the instance
-    float[] usData = new float[usDistance.sampleSize()]; // usData is the buffer where data is
-    // stored
+    SampleProvider usDistance = usSensor.getMode("Distance"); // usDistance provides samples from the instance
+    float[] usData = new float[usDistance.sampleSize()]; // usData is the buffer where data is stored
 
     // Color Sensor (Line Detection, Left)
     SensorModes myColor1 = new EV3ColorSensor(portColor1); // Get sensor instance
-    SampleProvider myColorStatus1 = myColor1.getMode("RGB"); // Get sample provider as "RGB"
+    SampleProvider myColorStatus1 = myColor1.getMode("Red"); // Get sample provider as "RGB"
     float[] sampleColor1 = new float[myColorStatus1.sampleSize()]; // Create a data buffer
 
     // Color Sensor (Line Detection, Right)
     SensorModes myColor2 = new EV3ColorSensor(portColor2); // Get sensor instance
-    SampleProvider myColorStatus2 = myColor2.getMode("RGB"); // Get sample provider as "RGB"
+    SampleProvider myColorStatus2 = myColor2.getMode("Red"); // Get sample provider as "RGB"
     float[] sampleColor2 = new float[myColorStatus2.sampleSize()]; // Create a data buffer
 
     // Color Sensor (Color Classification, Front)
@@ -100,18 +98,18 @@ public class Lab5 {
 
     LineCorrection linecorrection =
         new LineCorrection(myColorStatus1, sampleColor1, myColorStatus2, sampleColor2);
-    
+
     Navigation navigation = new Navigation(odometer, leftMotor, rightMotor, sensorMotor,
         colorclassification, linecorrection, WHEEL_RAD, WHEEL_RAD, TRACK);
-    
+
     UltrasonicLocalizer uslocalizer = new UltrasonicLocalizer(odometer, leftMotor, rightMotor,
         WHEEL_RAD, WHEEL_RAD, TRACK, usDistance, usData, navigation);
 
-    LightLocalizer lightlocalizer =
-        new LightLocalizer(odometer, leftMotor, rightMotor, WHEEL_RAD, WHEEL_RAD, TRACK, navigation, linecorrection);
+    LightLocalizer lightlocalizer = new LightLocalizer(odometer, leftMotor, rightMotor, WHEEL_RAD,
+        WHEEL_RAD, TRACK, navigation, linecorrection);
 
     SearchCan searchcan = new SearchCan(TRACK, odometer, navigation, colorclassification);
-    
+
     Sound.beepSequence();
     // The color classification until ESC pressed
     while (Button.readButtons() != Button.ID_ESCAPE) {
@@ -150,15 +148,15 @@ public class Lab5 {
     Thread usThread = new Thread(uslocalizer);
     usThread.start();
     usThread.join();
-    
+
     // Start the thread for light localizer
     Thread lightThread = new Thread(lightlocalizer);
     lightThread.start();
     lightThread.join();
 
-    /*// Start the thread for can searching
+    // Start the thread for can searching
     Thread scThread = new Thread(searchcan);
-    scThread.start();*/
+    scThread.start();
 
     // Wait here forever until button pressed to terminate the robot
     Button.waitForAnyPress();

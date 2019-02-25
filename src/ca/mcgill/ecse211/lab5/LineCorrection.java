@@ -1,7 +1,5 @@
 package ca.mcgill.ecse211.lab5;
 
-import lejos.hardware.Sound;
-import lejos.hardware.lcd.LCD;
 import lejos.robotics.SampleProvider;
 
 public class LineCorrection {
@@ -41,9 +39,9 @@ public class LineCorrection {
       last[0] = current[0]; // Update the last
       current[0] = sampleColor1[0]; // Update the current
     }
-
-    if ((current[0] - last[0]) / 0.01 < -0.6) { // If there is a black line detected
-      Sound.beep();
+    System.out.println("");
+    if ((current[0] - last[0]) * 1000 < -40) { // If there is a black line detected
+      System.out.println("");
       return true;
     }
     return false;
@@ -66,9 +64,9 @@ public class LineCorrection {
       last[1] = current[1]; // Update the last
       current[1] = sampleColor2[0]; // Update the current
     }
-
-    if ((current[1] - last[1]) / 0.01 < -0.6) { // If there is a black line detected
-      Sound.beep();
+    System.out.println("");
+    if ((current[1] - last[1]) * 1000 < -40) { // If there is a black line detected
+      System.out.println("");
       return true;
     }
     return false;

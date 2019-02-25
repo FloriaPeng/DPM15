@@ -3,7 +3,6 @@ package ca.mcgill.ecse211.lab5;
 import ca.mcgill.ecse211.odometer.*;
 import ca.mcgill.ecse211.odometer.OdometerExceptions;
 import lejos.hardware.Sound;
-import lejos.hardware.lcd.LCD;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 import lejos.hardware.motor.EV3MediumRegulatedMotor;
 
@@ -18,7 +17,7 @@ import lejos.hardware.motor.EV3MediumRegulatedMotor;
 public class Navigation {
 
   private Odometer odometer; // The odometer instance
-  public static final int FORWARD_SPEED = 180; // The forward speed for the robot
+  public static final int FORWARD_SPEED = 120; // The forward speed for the robot
   public static final int ROTATE_SPEED = 100; // The rotation speed for the robot
   private static final int ACCELERATION = 3000; // The acceleration of the motor
   private static final double SCAN_DISTANCE = 7; // The detect a can distance TODO
@@ -131,6 +130,7 @@ public class Navigation {
    * @return - void method, no return
    */
   void goTo(double x, double y, int position) {
+    Sound.beep();
 
     if (flag == 0) {
       corrected = false;
@@ -150,15 +150,12 @@ public class Navigation {
     // Travel the robot to the destination point
     leftMotor.rotate(convertDistance(leftRadius, travel), true);
     rightMotor.rotate(convertDistance(rightRadius, travel), true);
-
+    
     while (leftMotor.isMoving() || rightMotor.isMoving()) { // If the robot is moving
-      System.out.println("Before Correct x " + odometer.getXYT()[0] + " \t y "+ odometer.getXYT()[1] + " \t t " + odometer.getXYT()[2]);
       if (!corrected) {
-        System.out.println("Correction is Called, correctAngle(" + x + ", " + y + ", " + position + ")");
         correctAngle(x, y, position);
         flag = 1;
       }
-      System.out.println("After Correct x " + odometer.getXYT()[0] + " \t y " + odometer.getXYT()[1] + " \t t " + odometer.getXYT()[2]);
       
       warning = colorclassification.median_filter();
       if (warning < SCAN_DISTANCE) { // TODO
@@ -169,7 +166,7 @@ public class Navigation {
         leftMotor.stop(true);
         rightMotor.stop(false);
 
-        move(3);
+        move(4);
 
         Thread classificationThread = new Thread(colorclassification);
         classificationThread.start();
@@ -205,43 +202,47 @@ public class Navigation {
   }
 
   void correctAngle(double x, double y, int position) {
-    if (linecorrection.filter1()) { // If the black line is detected, the robot will stop
-      line[0] = true;
-      leftMotor.setAcceleration(ACCELERATION);
-      rightMotor.setSpeed(50);
-      leftMotor.stop(true);
-    }
-    if (linecorrection.filter2()) {
-      line[1] = true;
-      rightMotor.setAcceleration(ACCELERATION);
-      leftMotor.setSpeed(50);
-      rightMotor.stop(true);
-    }    
-    if (line[0] && line[1]) {
-      line[0] = false;
-      line[1] = false;
-      leftMotor.setAcceleration(ACCELERATION);
-      rightMotor.setAcceleration(ACCELERATION);
-      leftMotor.stop(true);
-      rightMotor.stop(false);
-      if (odometer.getXYT()[2] < 30 || odometer.getXYT()[2] > 330) {
-        odometer.setTheta(0);
-        odometer.position[2] = Math.toRadians(0);
-      } else if (Math.abs(odometer.getXYT()[2] - 90) < 60) {
-        odometer.setTheta(90);
-        odometer.position[2] = Math.toRadians(90);
-      } else if (Math.abs(odometer.getXYT()[2] - 180) < 60) {
-        odometer.setTheta(180);
-        odometer.position[2] = Math.toRadians(180);
-      } else if (Math.abs(odometer.getXYT()[2] - 270) < 60) {
-        odometer.setTheta(270);
-        odometer.position[2] = Math.toRadians(270);
+    boolean key = true;
+    while (key) {
+      line[0] = linecorrection.filter1();
+      line[1] = linecorrection.filter2();
+      if (line[0]) { // If the black line is detected, the robot will stop
+        leftMotor.stop(true);
+        //rightMotor.setSpeed(50);
       }
-      try {
-        Thread.sleep(500);
-      } catch (Exception e) {
+      if (line[1]) {
+        rightMotor.stop(true);
+        //leftMotor.setSpeed(50);
       }
-      goTo(x, y, position);
+      if (!leftMotor.isMoving() && !rightMotor.isMoving()) {
+        key = false;
+        corrected = true;
+        line[0] = false;
+        line[1] = false;
+        leftMotor.stop(true);
+        rightMotor.stop(false);
+        if (odometer.getXYT()[2] < 30 || odometer.getXYT()[2] > 330) {
+          odometer.setTheta(0);
+          odometer.position[2] = Math.toRadians(0);
+        } else if (Math.abs(odometer.getXYT()[2] - 90) < 30) {
+          odometer.setTheta(90);
+          odometer.position[2] = Math.toRadians(90);
+        } else if (Math.abs(odometer.getXYT()[2] - 180) < 30) {
+          odometer.setTheta(180);
+          odometer.position[2] = Math.toRadians(180);
+        } else if (Math.abs(odometer.getXYT()[2] - 270) < 30) {
+          odometer.setTheta(270);
+          odometer.position[2] = Math.toRadians(270);
+        }
+        try {
+          Thread.sleep(500);
+        } catch (Exception e) {
+        }
+        if(flag++ == 0) {
+          forward(1,1);
+          goTo(x, y, position);
+        }
+      }
     }
   }
 
@@ -272,8 +273,8 @@ public class Navigation {
 
   void move(double distance) {
 
-    leftMotor.setSpeed(FORWARD_SPEED / 2);
-    rightMotor.setSpeed(FORWARD_SPEED / 2);
+    leftMotor.setSpeed(FORWARD_SPEED);
+    rightMotor.setSpeed(FORWARD_SPEED);
     leftMotor.rotate(convertDistance(leftRadius, distance), true);
     rightMotor.rotate(convertDistance(rightRadius, distance), true);
 
