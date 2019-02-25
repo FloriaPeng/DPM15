@@ -41,6 +41,8 @@ public class SearchCan implements Runnable {
       x = map[i][0];
       y = map[i][1];
       position = map[i][2];
+      System.out.println("==================================================");
+      System.out.println("goTo("+ x * TILE_SIZE + " ,  " + y * TILE_SIZE + " ,  " + position + " )");
       navigation.goTo(x * TILE_SIZE, y * TILE_SIZE, position);
       navigation.flag = 0;
       if (colorclassification.found) {

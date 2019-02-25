@@ -152,11 +152,13 @@ public class Navigation {
     rightMotor.rotate(convertDistance(rightRadius, travel), true);
 
     while (leftMotor.isMoving() || rightMotor.isMoving()) { // If the robot is moving
-
+      System.out.println("Before Correct x " + odometer.getXYT()[0] + " \t y "+ odometer.getXYT()[1] + " \t t " + odometer.getXYT()[2]);
       if (!corrected) {
+        System.out.println("Correction is Called, correctAngle(" + x + ", " + y + ", " + position + ")");
         correctAngle(x, y, position);
         flag = 1;
       }
+      System.out.println("After Correct x " + odometer.getXYT()[0] + " \t y " + odometer.getXYT()[1] + " \t t " + odometer.getXYT()[2]);
       
       warning = colorclassification.median_filter();
       if (warning < SCAN_DISTANCE) { // TODO
@@ -220,11 +222,12 @@ public class Navigation {
       double dtheta = Math.atan(((time[1] - time[0]) * FORWARD_SPEED * Math.PI * leftRadius) / (track * 180));
       before = odometer.getXYT()[2];
       rotate(-dtheta);
+      System.out.println("Theta to be set = " + before);
       odometer.setTheta(before);
-      odometer.position[2] = before;
+      odometer.position[2] = Math.toRadians(before);
       corrected = true;
       try {
-        Thread.sleep(5000);
+        Thread.sleep(500);
       } catch (Exception e) {
       }
       goTo(x, y, position);

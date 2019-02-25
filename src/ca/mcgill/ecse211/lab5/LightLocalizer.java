@@ -122,27 +122,27 @@ public class LightLocalizer implements Runnable {
     terror = 270 - (((detect1[3] + detect2[3]) / 2) + ((detect1[1] + detect2[1]) / 2)) / 2;
 
     // Correcting the position of the robot
-    odometer.position[2] = odometer.position[2] + terror;
-    odometer.setXYT(-xerror, -yerror, odometer.position[2]);
+    odometer.position[2] += Math.toRadians(terror);
+    odometer.setXYT(-xerror, -yerror, Math.toDegrees(odometer.position[2]));
     navigation.travelTo(0, 0);
     navigation.turnTo(0);
 
     switch (SearchCan.SC) {
       case 0:
         odometer.setXYT(1 * TILE_SIZE, 1 * TILE_SIZE, 0);
-        odometer.position[2] = 0;
+        odometer.position[2] = Math.toRadians(0);
         break;
       case 1:
         odometer.setXYT(7 * TILE_SIZE, 1 * TILE_SIZE, 270);
-        odometer.position[2] = 270;
+        odometer.position[2] = Math.toRadians(270);
         break;
       case 2:
         odometer.setXYT(7 * TILE_SIZE, 7 * TILE_SIZE, 180);
-        odometer.position[2] = 180;
+        odometer.position[2] = Math.toRadians(180);
         break;
       case 3:
         odometer.setXYT(1 * TILE_SIZE, 7 * TILE_SIZE, 90);
-        odometer.position[2] = 90;
+        odometer.position[2] = Math.toRadians(90);
         break;
     }
   }
@@ -165,7 +165,7 @@ public class LightLocalizer implements Runnable {
         before = odometer.getXYT()[2];
         navigation.rotate(-dtheta);
         odometer.setTheta(before);
-        odometer.position[2] = before;
+        odometer.position[2] = Math.toRadians(before);
       }
       try {
         Thread.sleep(50);
