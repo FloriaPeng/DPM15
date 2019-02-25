@@ -206,26 +206,35 @@ public class Navigation {
 
   void correctAngle(double x, double y, int position) {
     if (linecorrection.filter1()) { // If the black line is detected, the robot will stop
-      time[0] = System.currentTimeMillis();
       line[0] = true;
+      leftMotor.setAcceleration(ACCELERATION);
+      leftMotor.stop(true);
     }
     if (linecorrection.filter2()) {
-      time[1] = System.currentTimeMillis();
       line[1] = true;
-    }
-    
+      rightMotor.setAcceleration(ACCELERATION);
+      rightMotor.stop(true);
+    }    
     if (line[0] && line[1]) {
       line[0] = false;
       line[1] = false;
+      leftMotor.setAcceleration(ACCELERATION);
+      rightMotor.setAcceleration(ACCELERATION);
       leftMotor.stop(true);
       rightMotor.stop(false);
-      double dtheta = Math.atan(((time[1] - time[0]) * FORWARD_SPEED * Math.PI * leftRadius) / (track * 180));
-      before = odometer.getXYT()[2];
-      rotate(-dtheta);
-      System.out.println("Theta to be set = " + before);
-      odometer.setTheta(before);
-      odometer.position[2] = Math.toRadians(before);
-      corrected = true;
+      if (odometer.getXYT()[2] < 30 || odometer.getXYT()[2] > 330) {
+        odometer.setTheta(0);
+        odometer.position[2] = Math.toRadians(0);
+      } else if (Math.abs(odometer.getXYT()[2] - 90) < 60) {
+        odometer.setTheta(90);
+        odometer.position[2] = Math.toRadians(90);
+      } else if (Math.abs(odometer.getXYT()[2] - 180) < 60) {
+        odometer.setTheta(180);
+        odometer.position[2] = Math.toRadians(180);
+      } else if (Math.abs(odometer.getXYT()[2] - 270) < 60) {
+        odometer.setTheta(270);
+        odometer.position[2] = Math.toRadians(270);
+      }
       try {
         Thread.sleep(500);
       } catch (Exception e) {
@@ -261,8 +270,8 @@ public class Navigation {
 
   void move(double distance) {
 
-    leftMotor.setSpeed(FORWARD_SPEED);
-    rightMotor.setSpeed(FORWARD_SPEED);
+    leftMotor.setSpeed(FORWARD_SPEED / 2);
+    rightMotor.setSpeed(FORWARD_SPEED / 2);
     leftMotor.rotate(convertDistance(leftRadius, distance), true);
     rightMotor.rotate(convertDistance(rightRadius, distance), true);
 

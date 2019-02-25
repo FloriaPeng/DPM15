@@ -146,7 +146,7 @@ public class Lab5 {
     // Starting localization thread
     UltrasonicLocalizer.OPTION = false; // The user is choosing rising edge
 
-    /*// Start the thread for us localizer
+    // Start the thread for us localizer
     Thread usThread = new Thread(uslocalizer);
     usThread.start();
     usThread.join();
@@ -154,11 +154,11 @@ public class Lab5 {
     // Start the thread for light localizer
     Thread lightThread = new Thread(lightlocalizer);
     lightThread.start();
-    lightThread.join();*/
+    lightThread.join();
 
-    // Start the thread for can searching
+    /*// Start the thread for can searching
     Thread scThread = new Thread(searchcan);
-    scThread.start();
+    scThread.start();*/
 
     // Wait here forever until button pressed to terminate the robot
     Button.waitForAnyPress();

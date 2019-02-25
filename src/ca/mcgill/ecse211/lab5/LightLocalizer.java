@@ -36,7 +36,8 @@ public class LightLocalizer implements Runnable {
   public static final int FULL_TURN = 360; // 360 degree for a circle
   private static final double SENSOR_TO_CENTER = 11; // The distance from the light sensor to the
                                                      // rotation sensor
-  private static final int BACK_DIST = 13; // Travel back distance TODO
+  private static final int BACK_DIST = 20; // Travel back distance TODO
+  private static final int ACCELERATION = 3000; // The acceleration of the motor
 
   double last = Math.PI; // Initialize the last variable to a specific number
   double current = 0; // last and current are both used for differential filter
@@ -110,6 +111,8 @@ public class LightLocalizer implements Runnable {
       } catch (Exception e) {
       }
     }
+    leftMotor.setAcceleration(ACCELERATION);
+    rightMotor.setAcceleration(ACCELERATION);
     leftMotor.stop(true); // Stop both motors
     rightMotor.stop(false);
 
@@ -150,26 +153,29 @@ public class LightLocalizer implements Runnable {
   void correctAngle() {
     while (rightMotor.isMoving() || leftMotor.isMoving()) {
       if (linecorrection.filter1()) { // If the black line is detected, the robot will stop
-        time[0] = System.currentTimeMillis();
         line[0] = true;
+        leftMotor.setAcceleration(ACCELERATION);
+        leftMotor.stop(true);
       }
       if (linecorrection.filter2()) {
-        time[1] = System.currentTimeMillis();
         line[1] = true;
+        rightMotor.setAcceleration(ACCELERATION);
+        rightMotor.stop(true);
       }
       if (line[0] && line[1]) {
-        line[0] = line[1] = false;
+        line[0] = false;
+        line[1] = false;
+        leftMotor.setAcceleration(ACCELERATION);
+        rightMotor.setAcceleration(ACCELERATION);
         leftMotor.stop(true);
         rightMotor.stop(false);
-        double dtheta = Math.atan(((time[1] - time[0]) * Navigation.FORWARD_SPEED * Math.PI * leftRadius) / (track * 180));
-        before = odometer.getXYT()[2];
-        navigation.rotate(-dtheta);
-        odometer.setTheta(before);
-        odometer.position[2] = Math.toRadians(before);
-      }
-      try {
-        Thread.sleep(50);
-      } catch (Exception e) {
+        if (odometer.getXYT()[2] < 30 || odometer.getXYT()[2] > 330) {
+          odometer.setTheta(0);
+          odometer.position[2] = Math.toRadians(0);
+        } else if (Math.abs(odometer.getXYT()[2] - 90) < 60) {
+          odometer.setTheta(90);
+          odometer.position[2] = Math.toRadians(90);
+        }
       }
     }
   }

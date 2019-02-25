@@ -140,6 +140,8 @@ public class UltrasonicLocalizer implements Runnable {
     navigation.turn(FULL_TURN); // The robot will rotate counter-clockwise for a full turn until
                                 // disrupted
     fallingDetect(); // Calling the fallingDetect method
+    leftMotor.setAcceleration(ACCELERATION);
+    rightMotor.setAcceleration(ACCELERATION);
     leftMotor.stop(true); // Stop the motors
     rightMotor.stop(false);
     alpha = (first + last) / 2;
@@ -150,6 +152,8 @@ public class UltrasonicLocalizer implements Runnable {
     // Detect left wall
     navigation.turn(-FULL_TURN);
     fallingDetect();
+    leftMotor.setAcceleration(ACCELERATION);
+    rightMotor.setAcceleration(ACCELERATION);
     leftMotor.stop(true);
     rightMotor.stop(false);
     beta = (first + last) / 2;
@@ -166,6 +170,8 @@ public class UltrasonicLocalizer implements Runnable {
     // Detect back wall
     navigation.turn(-FULL_TURN);
     risingDetect();
+    leftMotor.setAcceleration(ACCELERATION);
+    rightMotor.setAcceleration(ACCELERATION);
     leftMotor.stop(true);
     rightMotor.stop(false);
     alpha = (first + last) / 2;
@@ -182,6 +188,8 @@ public class UltrasonicLocalizer implements Runnable {
     // Detect left wall
     navigation.turn(FULL_TURN);
     risingDetect();
+    leftMotor.setAcceleration(ACCELERATION);
+    rightMotor.setAcceleration(ACCELERATION);
     leftMotor.stop(true);
     rightMotor.stop(false);
     beta = (first + last) / 2;
