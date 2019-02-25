@@ -208,11 +208,13 @@ public class Navigation {
     if (linecorrection.filter1()) { // If the black line is detected, the robot will stop
       line[0] = true;
       leftMotor.setAcceleration(ACCELERATION);
+      rightMotor.setSpeed(50);
       leftMotor.stop(true);
     }
     if (linecorrection.filter2()) {
       line[1] = true;
       rightMotor.setAcceleration(ACCELERATION);
+      leftMotor.setSpeed(50);
       rightMotor.stop(true);
     }    
     if (line[0] && line[1]) {
