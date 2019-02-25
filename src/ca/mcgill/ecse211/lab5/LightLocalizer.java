@@ -86,6 +86,7 @@ public class LightLocalizer implements Runnable {
    * @see java.lang.Runnable#run()
    */
   public void run() {
+        
     // The robot will first travel 45 degree front-right first until the light sensor detects a line
     navigation.move(TILE_SIZE);
     correctAngle();
@@ -166,11 +167,13 @@ public class LightLocalizer implements Runnable {
         line[0] = true;
         leftMotor.setAcceleration(ACCELERATION);
         leftMotor.stop(true);
+        rightMotor.setSpeed(50);
       }
       if (linecorrection.filter2()) {
         line[1] = true;
         rightMotor.setAcceleration(ACCELERATION);
         rightMotor.stop(true);
+        leftMotor.setSpeed(50);
       }
       if (line[0] && line[1]) {
         line[0] = false;

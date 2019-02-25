@@ -42,7 +42,7 @@ public class LineCorrection {
       current[0] = sampleColor1[0]; // Update the current
     }
 
-    if ((current[0] - last[0]) / 0.01 < -0.7) { // If there is a black line detected
+    if ((current[0] - last[0]) / 0.01 < -0.6) { // If there is a black line detected
       Sound.beep();
       return true;
     }

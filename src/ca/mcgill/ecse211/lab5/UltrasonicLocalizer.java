@@ -40,7 +40,7 @@ public class UltrasonicLocalizer implements Runnable {
   private float[] usData; // The data buffer for the ultrasonic sensor reading
   private Navigation navigation; // The instance of navigation
 
-  int d = 40; // An arbitrary distance that the robot record the angle (first/last below)
+  int d = 35; // An arbitrary distance that the robot record the angle (first/last below)
   int k = 1; // To eliminate the noise
   double first = 0; // The first angle that falls into the band (d+/-k)
   double last = 0; // The last angle that falls into the band (d+/-k)
