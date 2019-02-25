@@ -36,7 +36,7 @@ public class LightLocalizer implements Runnable {
   public static final int FULL_TURN = 360; // 360 degree for a circle
   private static final double SENSOR_TO_CENTER = 11; // The distance from the light sensor to the
                                                      // rotation sensor
-  private static final int BACK_DIST = 20; // Travel back distance TODO
+  private static final double BACK_DIST = 8.8; // Travel back distance TODO
   private static final int ACCELERATION = 3000; // The acceleration of the motor
 
   double last = Math.PI; // Initialize the last variable to a specific number
@@ -95,7 +95,14 @@ public class LightLocalizer implements Runnable {
     navigation.move(TILE_SIZE);
     correctAngle();
     navigation.back(BACK_DIST, 0);
+    navigation.rotate(-FULL_TURN / 4);
 
+    navigation.move(TILE_SIZE);
+    correctAngle();
+    navigation.back(0, BACK_DIST); // And then go back a certain distance
+    
+    
+    /*
     navigation.turn(FULL_TURN); // Then starts rotating clockwise
 
     for (int i = 0; i < 4;) { // It will record 4 angles
@@ -129,6 +136,9 @@ public class LightLocalizer implements Runnable {
     odometer.setXYT(-xerror, -yerror, Math.toDegrees(odometer.position[2]));
     navigation.travelTo(0, 0);
     navigation.turnTo(0);
+    */
+    
+    
 
     switch (SearchCan.SC) {
       case 0:
