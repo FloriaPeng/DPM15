@@ -2,16 +2,37 @@ package ca.mcgill.ecse211.lab5;
 
 import lejos.robotics.SampleProvider;
 
+/**
+ * This class implements differential filter for the color sensor detecting lines. 
+ * 
+ * @author Floria Peng
+ *
+ */
 public class LineCorrection {
 
+  /*
+   * Instances
+   */
   private SampleProvider myColorStatus1; // The sample provider for the color sensor
   private float[] sampleColor1; // The data buffer for the color sensor reading
   private SampleProvider myColorStatus2; // The sample provider for the color sensor
   private float[] sampleColor2; // The data buffer for the color sensor reading
 
+  /*
+   * Variables
+   */
   double[] last = {Math.PI, Math.PI}; // Initialize the last variable to a specific number
   double[] current = {0, 0}; // last and current are both used for differential filter
 
+  
+  /**
+   * This is a constructor for LineCorrection. 
+   * 
+   * @param myColorStatus1 - sample provider for the left color sensor
+   * @param sampleColor1 - data buffer for left color sensor
+   * @param myColorStatus2 - sample provider for the right color sensor
+   * @param sampleColor2 - data buffer for right color sensor
+   */
   public LineCorrection(SampleProvider myColorStatus1, float[] sampleColor1,
       SampleProvider myColorStatus2, float[] sampleColor2) {
 
