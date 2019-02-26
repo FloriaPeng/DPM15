@@ -8,183 +8,151 @@ import lejos.hardware.motor.EV3LargeRegulatedMotor;
  * @author Floria Peng
  * @author Jamie Li
  * 
- *         This class implements the Light locatizaion of the robot. There are a few processes in
- *         this class. This method thread is implemented after the ultrasonic localization is done.
- *         It firstly travel to the point (1,1) using Navigation class. When the light sensor
- *         detects the black line, it means the robot is almost at the corner of the (1,1), so it
- *         could starts adjusting. The robot would retreat for a pre-defined distance and starts
- *         rotation. The detect should detects four black lines, and record the angles of them. Then
- *         the robot would calculate the x-error and y-error based the four angles. Finally, the
- *         robot travels to (1,1) again and adjust its angle based on x-error and y error.
+ *         This class implements the Light localization of the robot. With the use of two light sensors
+ *         one on each side of the robot, the robot can localize by stopping the motor that detects a line
+ *         and moving the other until it detects a line.     
  *
  */
 public class LightLocalizer implements Runnable {
 
-  private Odometer odometer; // The odometer instance
-  private EV3LargeRegulatedMotor leftMotor; // The left motor of the robot
-  private EV3LargeRegulatedMotor rightMotor; // The right motor of the robot
-  double leftRadius; // The left wheel radius of the robot
-  double rightRadius; // The right wheel radius of the robot
-  double track; // The track of the robot (by measuring the distance between the center of both
-                // wheel)
+	/*PRIVATE FIELDS*/
 
-  private LineCorrection linecorrection; // The instance of line correction
-  private Navigation navigation; // The instance of sensor rotation
+	private Odometer odometer; // The odometer instance
+	private EV3LargeRegulatedMotor leftMotor; // The left motor of the robot
+	private EV3LargeRegulatedMotor rightMotor; // The right motor of the robot
+	double leftRadius; // The left wheel radius of the robot
+	double rightRadius; // The right wheel radius of the robot
+	double track; // The track of the robot (by measuring the distance between the center of both
+	// wheel)
 
-  public static final double TILE_SIZE = 30.48; // The tile size used for demo
-  public static final int FACING_CORNER = 225; // Angle facing the corner
-  public static final int FULL_TURN = 360; // 360 degree for a circle
-  private static final double SENSOR_TO_CENTER = 11; // The distance from the light sensor to the
-                                                     // rotation sensor
-  private static final double BACK_DIST = 8.8; // Travel back distance TODO
-  private static final int ACCELERATION = 3000; // The acceleration of the motor
+	private LineCorrection linecorrection; // The instance of line correction
+	private Navigation navigation; // The instance of sensor rotation
 
-  double last = Math.PI; // Initialize the last variable to a specific number
-  double current = 0; // last and current are both used for differential filter
-  double[] detect1 = new double[4]; // The x and y tile line detect angle, clockwise
-  double[] detect2 = new double[4]; // The x and y tile line detect angle, clockwise
-  long[] time = new long[2]; // The time of the light sensor
-  boolean[] line = {false, false}; // The detection of the line of the two light sensors
-  double xerror = 0; // The localization error in the x direction
-  double yerror = 0; // The localization error in the y direction
-  double terror = 0; // The localization error in angle
-  double before = 0; // The before line correction angle
+	/*CONSTANTS*/
+	public static final double TILE_SIZE = 30.48; // The tile size used for demo
+	public static final int FACING_CORNER = 225; // Angle facing the corner
+	public static final int FULL_TURN = 360; // 360 degree for a circle
+	private static final double SENSOR_TO_CENTER = 11; // The distance from the light sensor to the
+	// rotation sensor
+	private static final double BACK_DIST = 8.8; // Travel back distance (distance between wheels and sensors)
+	private static final int ACCELERATION = 3000; // The acceleration of the motor
 
-  /**
-   * The constructor of this class
-   * 
-   * @param odometer
-   * @param leftMotor
-   * @param rightMotor
-   * @param leftRadius
-   * @param rightRadius
-   * @param track
-   * @param myColorStatus
-   * @param sampleColor
-   * @param navigation
-   * @throws OdometerExceptions
-   */
-  public LightLocalizer(Odometer odometer, EV3LargeRegulatedMotor leftMotor,
-      EV3LargeRegulatedMotor rightMotor, double leftRadius, double rightRadius, double track, Navigation navigation, LineCorrection linecorrection)
-      throws OdometerExceptions {
-    this.odometer = odometer;
-    this.leftMotor = leftMotor;
-    this.rightMotor = rightMotor;
-    this.leftRadius = leftRadius;
-    this.rightRadius = rightRadius;
-    this.track = track;
-    this.navigation = navigation;
-    this.linecorrection = linecorrection;
-  }
+	/*NON-PRIVATE FIELDS*/
+	double last = Math.PI; // Initialize the last variable to a specific number
+	double current = 0; // last and current are both used for differential filter
+	double[] detect1 = new double[4]; // The x and y tile line detect angle, clockwise
+	double[] detect2 = new double[4]; // The x and y tile line detect angle, clockwise
+	long[] time = new long[2]; // The time of the light sensor
+	boolean[] line = {false, false}; // The detection of the line of the two light sensors
+	double xerror = 0; // The localization error in the x direction
+	double yerror = 0; // The localization error in the y direction
+	double terror = 0; // The localization error in angle
+	double before = 0; // The before line correction angle
 
-  /**
-   * The run method of this class. It will travel to 45 degree forward a specific distance, detect
-   * the black line, retreat for a pre-defined distance, starts rotation and records four angles of
-   * the robot when the black lines are detected, and finally travel to the origin point and adjust
-   * itself based on the x and y error
-   * 
-   * @see java.lang.Runnable#run()
-   */
-  public void run() {
-        
-    // The robot will first travel 45 degree front-right first until the light sensor detects a line
-    navigation.move(TILE_SIZE);
-    correctAngle();
-    navigation.back(0, BACK_DIST); // And then go back a certain distance
-    navigation.rotate(FULL_TURN / 4);
+	/**
+	 * The default constructor of this class
+	 * 
+	 * @param odometer
+	 * @param leftMotor
+	 * @param rightMotor
+	 * @param leftRadius
+	 * @param rightRadius
+	 * @param track
+	 * @param navigation
+	 * @param linecorrection
+	 * @throws OdometerExceptions
+	 */
+	public LightLocalizer(Odometer odometer, EV3LargeRegulatedMotor leftMotor,
+			EV3LargeRegulatedMotor rightMotor, double leftRadius, double rightRadius, double track, Navigation navigation, LineCorrection linecorrection)
+					throws OdometerExceptions {
+		this.odometer = odometer;
+		this.leftMotor = leftMotor;
+		this.rightMotor = rightMotor;
+		this.leftRadius = leftRadius;
+		this.rightRadius = rightRadius;
+		this.track = track;
+		this.navigation = navigation;
+		this.linecorrection = linecorrection;
+	}
 
-    navigation.move(TILE_SIZE);
-    correctAngle();
-    navigation.back(BACK_DIST, 0);
-    navigation.rotate(-FULL_TURN / 4);
+	/**
+	 * The run method of this class. It will travel to 45 degree forward a specific distance, detect
+	 * the black line, retreat for a pre-defined distance, starts rotation and records four angles of
+	 * the robot when the black lines are detected, and finally travel to the origin point and adjust
+	 * itself based on the x and y error
+	 * 
+	 * @see java.lang.Runnable#run()
+	 */
+	public void run() {
 
-    navigation.move(TILE_SIZE);
-    correctAngle();
-    navigation.back(0, BACK_DIST); // And then go back a certain distance
-    
-    /*
-    navigation.turn(FULL_TURN); // Then starts rotating clockwise
+		// The robot will first travel 45 degree front-right first until the light sensor detects a line
+		navigation.move(TILE_SIZE); //move forward (until you detect a line) to correct Y odometer reading
+		correctAngle(); //when a line is detected, correct angle
+		navigation.back(0, BACK_DIST); // Go back the offset distance between the wheels and sensors
+		navigation.rotate(FULL_TURN / 4); //Rotate 90 degrees clockwise
 
-    for (int i = 0; i < 4;) { // It will record 4 angles
-      if (linecorrection.filter1()) {
-        detect1[i] = odometer.getXYT()[2];
-      }
-      if (linecorrection.filter2()) {
-        detect1[i] = odometer.getXYT()[2];
-        i++;
-      }
-      try {
-        Thread.sleep(50);
-      } catch (Exception e) {
-      }
-    }
-    leftMotor.setAcceleration(ACCELERATION);
-    rightMotor.setAcceleration(ACCELERATION);
-    leftMotor.stop(true); // Stop both motors
-    rightMotor.stop(false);
+		navigation.move(TILE_SIZE); //move forward (until you detect a line) to correct X odometer reading
+		correctAngle(); //when a line is detected, correct angle
+		navigation.back(BACK_DIST, 0); //Move back the offset distance between the wheels and sensors
+		navigation.rotate(-FULL_TURN / 4); //Rotate 90 degrees anti-clockwise
 
-    // Calculate the x error, y error and theta error using the cos of the angle detected
-    xerror = SENSOR_TO_CENTER * Math.cos(
-        Math.toRadians((((detect1[3] + detect2[3]) / 2) - ((detect1[1] + detect2[1]) / 2)) / 2));
-    yerror = SENSOR_TO_CENTER * Math.cos(
-        Math.toRadians((((detect1[2] + detect2[2]) / 2) - ((detect1[0] + detect2[0]) / 2)) / 2));
+		navigation.move(TILE_SIZE); //move forward (until you detect a line) to correct Y value (double check)
+		correctAngle();//when a line is detected, correct angle 
+		navigation.back(0, BACK_DIST); // Go back offset distance, you reach the origin
 
-    terror = 270 - (((detect1[3] + detect2[3]) / 2) + ((detect1[1] + detect2[1]) / 2)) / 2;
+		//Depending on the starting corner, set the Theta value accordingly
+		switch (SearchCan.SC) {
+		case 0:
+			odometer.setXYT(1 * TILE_SIZE, 1 * TILE_SIZE, 0);
+			odometer.position[2] = Math.toRadians(0);
+			break;
+		case 1:
+			odometer.setXYT(7 * TILE_SIZE, 1 * TILE_SIZE, 270);
+			odometer.position[2] = Math.toRadians(270);
+			break;
+		case 2:
+			odometer.setXYT(7 * TILE_SIZE, 7 * TILE_SIZE, 180);
+			odometer.position[2] = Math.toRadians(180);
+			break;
+		case 3:
+			odometer.setXYT(1 * TILE_SIZE, 7 * TILE_SIZE, 90);
+			odometer.position[2] = Math.toRadians(90);
+			break;
+		}
+	}
 
-    // Correcting the position of the robot
-    odometer.position[2] += Math.toRadians(terror);
-    odometer.setXYT(-xerror, -yerror, Math.toDegrees(odometer.position[2]));
-    navigation.travelTo(0, 0);
-    navigation.turnTo(0);
-    */
-    
-    switch (SearchCan.SC) {
-      case 0:
-        odometer.setXYT(1 * TILE_SIZE, 1 * TILE_SIZE, 0);
-        odometer.position[2] = Math.toRadians(0);
-        break;
-      case 1:
-        odometer.setXYT(7 * TILE_SIZE, 1 * TILE_SIZE, 270);
-        odometer.position[2] = Math.toRadians(270);
-        break;
-      case 2:
-        odometer.setXYT(7 * TILE_SIZE, 7 * TILE_SIZE, 180);
-        odometer.position[2] = Math.toRadians(180);
-        break;
-      case 3:
-        odometer.setXYT(1 * TILE_SIZE, 7 * TILE_SIZE, 90);
-        odometer.position[2] = Math.toRadians(90);
-        break;
-    }
-  }
+	/**
+	 * This helper method is used to correct the Angle 
+	 */
+	void correctAngle() {
+		while (true) {
+			/* Line 0 corresponds to boolean if left motor detected a line
+			 * Line 1 corresponds to boolean if right motor detected a line
+			 */
+			line[0] = linecorrection.filter1(); //set line[0] to whether or not a line was detected
+			line[1] = linecorrection.filter2(); //set line[1] to whether or not a line was detected
+			if (line[0]) { // If the black line is detected, the robot will stop
+				leftMotor.stop(true);
+			}
+			if (line[1]) {
+				rightMotor.stop(true);
+			}
+			if (!leftMotor.isMoving() && !rightMotor.isMoving()) {
+				line[0] = false;
+				line[1] = false;
+				leftMotor.stop(true);
+				rightMotor.stop(false);
+				if (odometer.getXYT()[2] < 30 || odometer.getXYT()[2] > 330) {
+					odometer.setTheta(0);
+					odometer.position[2] = Math.toRadians(0);
+				} else if (Math.abs(odometer.getXYT()[2] - 90) < 60) {
+					odometer.setTheta(90);
+					odometer.position[2] = Math.toRadians(90);
+				}
 
-  void correctAngle() {
-    while (true) {
-      line[0] = linecorrection.filter1();
-      line[1] = linecorrection.filter2();
-      if (line[0]) { // If the black line is detected, the robot will stop
-        leftMotor.stop(true);
-        //rightMotor.setSpeed(50);
-      }
-      if (line[1]) {
-        rightMotor.stop(true);
-        //leftMotor.setSpeed(50);
-      }
-      if (!leftMotor.isMoving() && !rightMotor.isMoving()) {
-        line[0] = false;
-        line[1] = false;
-        leftMotor.stop(true);
-        rightMotor.stop(false);
-        if (odometer.getXYT()[2] < 30 || odometer.getXYT()[2] > 330) {
-          odometer.setTheta(0);
-          odometer.position[2] = Math.toRadians(0);
-        } else if (Math.abs(odometer.getXYT()[2] - 90) < 60) {
-          odometer.setTheta(90);
-          odometer.position[2] = Math.toRadians(90);
-        }
-        break;
-      }
-    }
-  }
+				break;
+			}
+		}
+	}
 
 }
