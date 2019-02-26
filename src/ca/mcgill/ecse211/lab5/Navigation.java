@@ -15,8 +15,10 @@ import lejos.hardware.motor.EV3MediumRegulatedMotor;
  *
  */
 public class Navigation {
-
-  private Odometer odometer; // The odometer instance
+  
+  /*
+   * Constant fields
+   */
   public static final int FORWARD_SPEED = 120; // The forward speed for the robot
   public static final int ROTATE_SPEED = 100; // The rotation speed for the robot
   private static final int ACCELERATION = 3000; // The acceleration of the motor
@@ -25,16 +27,23 @@ public class Navigation {
   private static final double PREPARE_SQUARE = 30.48 / 2; // TODO
   private static final double SQUARE_LENGTH = 30.48 / 2; // TODO
 
+  /*
+   * Instances
+   */
+  private Odometer odometer; // The odometer instance
   private LineCorrection linecorrection; // The instance of line correction
   private EV3LargeRegulatedMotor leftMotor; // The left motor of the robot
   private EV3LargeRegulatedMotor rightMotor; // The right motor of the robot
   private EV3MediumRegulatedMotor sensorMotor; // The sensor motor of the robot
   private ColorClassification colorclassification; // The ColorClassification instance
+  
+  /*
+   * Variables
+   */
   double leftRadius; // The left wheel radius of the robot
   double rightRadius; // The right wheel radius of the robot
   double track; // The track of the robot (by measuring the distance between the center of both
-                // wheel)
-
+                // wheel
   double lastx; // The last x position of the robot
   double lasty; // The last y position of the robot
   double lasttheta; // The last angle of the robot
@@ -58,10 +67,14 @@ public class Navigation {
    * @param odometer - The odometer of the robot
    * @param leftMotor - The leftMotor of the robot
    * @param rightMotor - The rightMotor of the robot
+   * @param sensorMotor - The motor which the color sensor is attached to
+   * @param colorclassification - ColorClassification instance
+   * @param linecorrection - LineCorrection instance
    * @param leftRadius - The left wheel radius of the robot
    * @param rightRadius - The right wheel radius of the robot
    * @param track - The track of the robot measured form the distance between the center of both
    *        wheels
+   * 
    * 
    * @throws OdometerExceptions
    */
@@ -120,13 +133,15 @@ public class Navigation {
    * points. This method should continuously call turnTo(double theta) and then set the motor speed
    * to forward(straight). This will make sure that your heading is updated until you reach your
    * exact goal. This method will poll the odometer for information.
-   * 
+   * When the obstacle is detected (through ultrasonic sensor), the navigation pauses, and starts scanning the can using the color sensor. 
+   * After detecting the color, the method exports the result of scanning (color of the can) and performs obstacle avoidance. 
+   * Then, the robot proceeds on the navigation. 
    * <p>
    * This method can be break
    * 
    * @param x - The x coordinate for the next point
    * @param y - The y coordinate for the next point
-   * 
+   * @paran position - the position where the robot is at on the map - used to decide on which way the robot should go around. 
    * @return - void method, no return
    */
   void goTo(double x, double y, int position) {
@@ -201,6 +216,14 @@ public class Navigation {
 
   }
 
+  /**
+   * This method uses 2 light sensors facing the floor to detect the lines, and adjusts robot's angle to be perpendicular to the line. 
+   * 
+   * 
+   * @param x - the destination x-coordinate that robot should navigate itself after the correction  - passed back to goTo(). 
+   * @param y - the destination y-coordinate that robot should navigate itself after the correction  - passed back to goTo(). 
+   * @param position - the position where the robot is at on the map - used to decide on which way the robot should go around - passed back to goTo(). 
+   */
   void correctAngle(double x, double y, int position) {
     boolean key = true;
     while (key) {
@@ -246,6 +269,12 @@ public class Navigation {
     }
   }
 
+  /**
+   * This method performs avoiding the collision with can. 
+   * The robot turns 90 degrees and goes around the can to avoid collision. 
+   * 
+   * @param position - the position where the robot is at on the map - used to decide on which way the robot should go around. 
+   */
   void canAvoidance(int position) {
     back((PREPARE_SQUARE - 2.9), 0); // diameter of can = 5.8cm
     if (position == 0) { // right side can
@@ -271,6 +300,11 @@ public class Navigation {
     }
   }
 
+  /**
+   * This method let the robot to move forward for a certain distance. 
+   * 
+   * @param distance - distance in cm
+   */
   void move(double distance) {
 
     leftMotor.setSpeed(FORWARD_SPEED);
@@ -425,6 +459,7 @@ public class Navigation {
   }
 
   /**
+   * This method converts angle to distance. 
    * @param radius
    * @param width
    * @param angle

@@ -3,7 +3,17 @@ package ca.mcgill.ecse211.lab5;
 import ca.mcgill.ecse211.odometer.*;
 import lejos.hardware.Sound;
 
+/**
+ * @author Floria Peng
+ * 
+ *         This class contains the basic method for the searching the can. The map is interpreted in this class and calls navigation class to perform the move.  
+ */
+
 public class SearchCan implements Runnable {
+  
+  /*
+   * Constant (Settings)
+   */
 
   public static final int[] LOWER_LEFT = {1, 1}; // The lower-left corner of the search region [0,
                                                  // 8]
@@ -16,14 +26,27 @@ public class SearchCan implements Runnable {
   private static final int SLEEP_TIME = 1000; // Reach the lower-left time
   public static final int FULL_TURN = 360; // 360 degree for a circle
 
+  /*
+   * Instances
+   */
   private Odometer odometer;
   private Navigation navigation; // The instance of sensor rotation
   private ColorClassification colorclassification;
 
+  /*
+   * Variables
+   */
   double track; // The track of the robot
   double halfTrack; // The half track of the robot TODO
   int[][] map; // The search map
 
+  /**
+   * This is a constructor for SearchCan class, called by Lab5.java after localization is complete. 
+   * @param track
+   * @param odometer
+   * @param navigation
+   * @param colorclassification
+   */
   public SearchCan(double track, Odometer odometer, Navigation navigation,
       ColorClassification colorclassification) {
     this.track = track;
@@ -33,6 +56,12 @@ public class SearchCan implements Runnable {
     this.colorclassification = colorclassification;
   }
 
+  /**
+   * The run method of this class. It calls searchMap() to generate the map, interprets the map and calls navigation to perform the move. 
+   * initialize() is called before performing the search to move the robot to the starting point. 
+   * 
+   * @see java.lang.Runnable#run()
+   */
   public void run() {
     initialize(); // Navigate the robot to the Lower-Left corner of the search region
     searchMap(); // Generate search map
@@ -53,6 +82,10 @@ public class SearchCan implements Runnable {
     navigation.travelTo(UPPER_RIGHT[0] * TILE_SIZE, UPPER_RIGHT[1] * TILE_SIZE);
   }
 
+  /**
+   * This method let the robot to move to the starting point of the map. 
+   * It depends on the variable SC to determine where is the destination. 
+   */
   private void initialize() {
     switch (SC) {
       case 0:
@@ -88,6 +121,9 @@ public class SearchCan implements Runnable {
     }
   }
 
+  /*
+   * This method triggers beep. 
+   */
   private void ready() {
     Sound.beep();
     try {
@@ -96,6 +132,10 @@ public class SearchCan implements Runnable {
     }
   }
 
+  /*
+   * This method interprets the input and generate the map to search. 
+   * Used from run() method. 
+   */
   private void searchMap() {
     int horizontal = UPPER_RIGHT[0] - LOWER_LEFT[0] + 1;
     int vertical = UPPER_RIGHT[1] - LOWER_LEFT[1] + 1;
