@@ -8,14 +8,14 @@ import lejos.hardware.motor.EV3LargeRegulatedMotor;
 import lejos.robotics.SampleProvider;
 
 /**
- * @author Floria Peng
  * 
- *         This class implements the ultrasonic localization of the robot. There are two methods in
- *         this class: falling edge implementation and rising edge implementation. For the the
- *         falling edge the robot starts from not facing the wall, and the sensor first detect of
- *         from the back wall and then the left wall, and record the angle of the robot if the
- *         sensor detect a certain distance. The rising edge is basically the same except the robot
- *         starts from facing the wall.
+ * This class implements the ultrasonic localization of the robot. There are two methods in this
+ * class: falling edge implementation and rising edge implementation. For the the falling edge the
+ * robot starts from not facing the wall, and the sensor first detect of from the back wall and then
+ * the left wall, and record the angle of the robot if the sensor detect a certain distance. The
+ * rising edge is basically the same except the robot starts from facing the wall.
+ * 
+ * @author Floria Peng
  *
  */
 public class UltrasonicLocalizer implements Runnable {

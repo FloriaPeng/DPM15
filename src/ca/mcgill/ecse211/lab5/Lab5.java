@@ -19,6 +19,7 @@ import lejos.robotics.SampleProvider;
  * a search in the prescribed area for a can of specified color.
  * It will then detect the can and identify its color.
  * The prescribed area is given to us by a lower left corner and an upper right corner.
+ * 
  * @author Floria Peng
  *
  */

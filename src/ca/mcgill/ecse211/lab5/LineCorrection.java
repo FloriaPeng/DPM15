@@ -3,7 +3,7 @@ package ca.mcgill.ecse211.lab5;
 import lejos.robotics.SampleProvider;
 
 /**
- * This class implements differential filter for the color sensor detecting lines. 
+ * This class implements differential filter for the color sensor detecting lines.
  * 
  * @author Floria Peng
  *
@@ -23,9 +23,9 @@ public class LineCorrection {
    */
   double[] last = {Math.PI, Math.PI}; // Initialize the last variable to a specific number
   double[] current = {0, 0}; // last and current are both used for differential filter
-  
+
   /**
-   * This is a constructor for LineCorrection. 
+   * This is a constructor for LineCorrection.
    * 
    * @param myColorStatus1 - sample provider for the left color sensor
    * @param sampleColor1 - data buffer for left color sensor
@@ -53,7 +53,8 @@ public class LineCorrection {
     myColorStatus1.fetchSample(sampleColor1, 0); // Used for obtaining color reading from the
                                                  // SampleProvider
 
-    if (Math.abs(last[0] - Math.PI) < Math.pow(0.1, 5)) { // If last has not been assigned for any number yet
+    if (Math.abs(last[0] - Math.PI) < Math.pow(0.1, 5)) { // If last has not been assigned for any
+                                                          // number yet
       last[0] = current[0] = sampleColor1[0];
     } else {
       last[0] = current[0]; // Update the last
@@ -78,7 +79,8 @@ public class LineCorrection {
     myColorStatus2.fetchSample(sampleColor2, 0); // Used for obtaining color reading from the
                                                  // SampleProvider
 
-    if (Math.abs(last[1] - Math.PI) < Math.pow(0.1, 5)) { // If last has not been assigned for any number yet
+    if (Math.abs(last[1] - Math.PI) < Math.pow(0.1, 5)) { // If last has not been assigned for any
+                                                          // number yet
       last[1] = current[1] = sampleColor2[0];
     } else {
       last[1] = current[1]; // Update the last
