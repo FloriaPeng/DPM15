@@ -168,40 +168,47 @@ public class Navigation {
 
         move(4);
 
-        Thread classificationThread = new Thread(colorclassification);
-        classificationThread.start();
-        sensorMotor.setSpeed(ROTATE_SPEED / 6);
-        sensorMotor.rotate(FULL_TURN - 10, true);
+        Thread classificationThread = new Thread(colorclassification); //set a new thread to scan the color
+        classificationThread.start();                                  //the color scanning thread starts
+        sensorMotor.setSpeed(ROTATE_SPEED / 6);                        //set the scanning speed
+        sensorMotor.rotate(FULL_TURN - 10, true);                      //??
         while (sensorMotor.isMoving()) {
           try {
-            Thread.sleep(50);
+            Thread.sleep(50);                                         //??
           } catch (Exception e) {
           }
         }
-        colorclassification.stop = true;
+        colorclassification.stop = true;                              //scan is done
         try {
           classificationThread.join();
         } catch (InterruptedException e) {
           e.printStackTrace();
         }
-        if (colorclassification.color == SearchCan.TR) {
+        if (colorclassification.color == SearchCan.TR) {  //if the can has the target color
           colorclassification.found = true;
-          Sound.beep();
+          Sound.beep();                                   //beep once
           sensorMotor.setSpeed(ROTATE_SPEED);
           sensorMotor.rotate(-FULL_TURN, false);
           return;
-        } else {
-          Sound.twoBeeps();
+        } else {                                          //if the is not the target color
+          Sound.twoBeeps();                               //beep twice
           sensorMotor.setSpeed(ROTATE_SPEED);
           sensorMotor.rotate(-FULL_TURN + 10, false);
-          canAvoidance(position);
+          canAvoidance(position);                         //avoid the can
         }
       }
     }
 
   }
 
-  void correctAngle(double x, double y, int position) {
+  /*
+  This method is navigation correction based on two light sensors at the back
+  when either of the sensor detects a black line, it will stops and wait until
+  the other sensors detects a black line, so that the robot will restart with
+  a straight position
+
+  */
+  void correctAngle(double x, double y, int position) { 
     boolean key = true;
     while (key) {
       line[0] = linecorrection.filter1();
@@ -245,7 +252,9 @@ public class Navigation {
       }
     }
   }
-
+  /*
+  Not really understood
+  */
   void canAvoidance(int position) {
     back((PREPARE_SQUARE - 2.9), 0); // diameter of can = 5.8cm
     if (position == 0) { // right side can
@@ -270,6 +279,11 @@ public class Navigation {
       rotate(90);
     }
   }
+
+  /*
+  This method simply moves the robot forward to a given distance
+
+  */
 
   void move(double distance) {
 
@@ -420,7 +434,7 @@ public class Navigation {
    * @param distance
    * @return
    */
-  private static int convertDistance(double radius, double distance) {
+  private static int convertDistance(double radius, double distance) {  //convert from radius and distance to distance
     return (int) ((180.0 * distance) / (Math.PI * radius));
   }
 
@@ -430,7 +444,7 @@ public class Navigation {
    * @param angle
    * @return
    */
-  private static int convertAngle(double radius, double width, double angle) {
+  private static int convertAngle(double radius, double width, double angle) { //convert from radius angle and width to a distance
     return convertDistance(radius, Math.PI * width * angle / 360.0);
   }
 
