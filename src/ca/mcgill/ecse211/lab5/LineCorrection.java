@@ -23,7 +23,6 @@ public class LineCorrection {
    */
   double[] last = {Math.PI, Math.PI}; // Initialize the last variable to a specific number
   double[] current = {0, 0}; // last and current are both used for differential filter
-
   
   /**
    * This is a constructor for LineCorrection. 
