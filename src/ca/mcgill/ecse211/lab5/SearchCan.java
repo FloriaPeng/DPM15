@@ -3,14 +3,22 @@ package ca.mcgill.ecse211.lab5;
 import ca.mcgill.ecse211.odometer.*;
 import lejos.hardware.Sound;
 
+/*
+This class provides the functionality for the robot to search a given area.
+The robot firstly travels to the given corner, and generates a map based on 
+given corner. Then it starts travel through the map tile by tile.
+
+###not understand why when it finds a target, it breaks the for loop and go back
+*/
+
 public class SearchCan implements Runnable {
 
   public static final int[] LOWER_LEFT = {1, 1}; // The lower-left corner of the search region [0,
                                                  // 8]
   public static final int[] UPPER_RIGHT = {4, 4}; // The upper-right corner of the search region [0,
                                                   // 8]
-  public static final int TR = 3; // Blue, Green, Yellow, Red [1, 4]
-  public static final int SC = 0; // [0, 3]
+  public static final int TR = 3; // Blue, Green, Yellow, Red [1, 4] Target
+  public static final int SC = 0; // [0, 3] Search Corner
 
   public static final double TILE_SIZE = 30.48; // The tile size used for demo
   private static final int SLEEP_TIME = 1000; // Reach the lower-left time
@@ -24,6 +32,8 @@ public class SearchCan implements Runnable {
   double halfTrack; // The half track of the robot TODO
   int[][] map; // The search map
 
+  //class constructor
+
   public SearchCan(double track, Odometer odometer, Navigation navigation,
       ColorClassification colorclassification) {
     this.track = track;
@@ -35,7 +45,7 @@ public class SearchCan implements Runnable {
 
   public void run() {
     initialize(); // Navigate the robot to the Lower-Left corner of the search region
-    searchMap(); // Generate search map
+    searchMap(); // Once ready() is complete, the robot will generate search map
     int x, y, position;
     for (int i = 1; i < map.length; i++) {
       x = map[i][0];
@@ -53,10 +63,10 @@ public class SearchCan implements Runnable {
     navigation.travelTo(UPPER_RIGHT[0] * TILE_SIZE, UPPER_RIGHT[1] * TILE_SIZE);
   }
 
-  private void initialize() {
+  private void initialize() {  //based on different search Corner, the robot travel to accoridng corner and get ready
     switch (SC) {
       case 0:
-        navigation.travelTo(LOWER_LEFT[0] * TILE_SIZE, LOWER_LEFT[1] * TILE_SIZE); // 0
+        navigation.travelTo(LOWER_LEFT[0] * TILE_SIZE, LOWER_LEFT[1] * TILE_SIZE); 
         ready();
         break;
       case 1:
@@ -88,7 +98,7 @@ public class SearchCan implements Runnable {
     }
   }
 
-  private void ready() {
+  private void ready() { //when it's ready at the according corner, the robot will beep once to indicate
     Sound.beep();
     try {
       Thread.sleep(SLEEP_TIME);
@@ -96,10 +106,10 @@ public class SearchCan implements Runnable {
     }
   }
 
-  private void searchMap() {
-    int horizontal = UPPER_RIGHT[0] - LOWER_LEFT[0] + 1;
-    int vertical = UPPER_RIGHT[1] - LOWER_LEFT[1] + 1;
-    map = new int[horizontal * vertical][3];
+  private void searchMap() {  //the robot will generate search map based on given corner
+    int horizontal = UPPER_RIGHT[0] - LOWER_LEFT[0] + 1;  //set initial X origin
+    int vertical = UPPER_RIGHT[1] - LOWER_LEFT[1] + 1; //set inital Y origin
+    map = new int[horizontal * vertical][3]; //set up a 2D array of map
     int direction = 1;
     for (int i = 0; i < vertical; i++) {
       for (int j = 0; j < horizontal; j++) {
