@@ -7,11 +7,11 @@ import lejos.hardware.motor.EV3LargeRegulatedMotor;
 import lejos.hardware.motor.EV3MediumRegulatedMotor;
 
 /**
- * @author Floria Peng
+ * This class contains the basic method for the navigation. All the movements of the robot is
+ * controlled by the this class. The methods will be called by UltrasonicLocalizer or
+ * LightLocalizer.
  * 
- *         This class contains the basic method for the navigation. All the movements of the robot
- *         is controlled by the this class. The methods will be called by UltrasonicLocalizer or
- *         LightLocalizer.
+ * @author Floria Peng
  *
  */
 public class Navigation {
@@ -171,7 +171,7 @@ public class Navigation {
         Thread classificationThread = new Thread(colorclassification); // set a new thread to scan
                                                                        // the color
         classificationThread.start(); // the color scanning thread starts
-        sensorMotor.setSpeed(ROTATE_SPEED / 6); // set the scanning speed
+        sensorMotor.setSpeed(ROTATE_SPEED / 4); // set the scanning speed
         sensorMotor.rotate(FULL_TURN - 10, true); // The sensor motor will rotate less than 180
                                                   // degree (as we are using a gear)
         while (sensorMotor.isMoving()) { // Wait for the sensor to stop

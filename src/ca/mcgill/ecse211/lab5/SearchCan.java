@@ -14,11 +14,11 @@ import lejos.hardware.Sound;
 
 public class SearchCan implements Runnable {
 
-  public static final int[] LOWER_LEFT = {1, 1}; // The lower-left corner of the search region [0,
+  public static final int[] LOWER_LEFT = {2, 2}; // The lower-left corner of the search region [0,
                                                  // 8]
   public static final int[] UPPER_RIGHT = {4, 4}; // The upper-right corner of the search region [0,
                                                   // 8]
-  public static final int TR = 3; // Blue, Green, Yellow, Red [1, 4] Target
+  public static final int TR = 4; // Blue, Green, Yellow, Red [1, 4] Target
   public static final int SC = 0; // [0, 3] Search Corner
 
   public static final double TILE_SIZE = 30.48; // The tile size used for demo
@@ -67,16 +67,14 @@ public class SearchCan implements Runnable {
       x = map[i][0];
       y = map[i][1];
       position = map[i][2];
-      System.out.println("from x = " + odometer.getXYT()[0] + " y = " + odometer.getXYT()[1]
-          + " T = " + odometer.getXYT()[2]);
-      System.out.println("to x " + x * TILE_SIZE + " y = " + y * TILE_SIZE);
+      
       navigation.goTo(x * TILE_SIZE, y * TILE_SIZE, position);
       navigation.flag = 0;
       if (colorclassification.found) {
         break;
       }
     }
-    navigation.back(TILE_SIZE / 3, 0);
+    navigation.canAvoidance(2);
     navigation.travelTo(UPPER_RIGHT[0] * TILE_SIZE, UPPER_RIGHT[1] * TILE_SIZE);
   }
 

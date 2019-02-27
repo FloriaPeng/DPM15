@@ -137,13 +137,14 @@ public class LightLocalizer implements Runnable {
        */
       line[0] = linecorrection.filter1(); // set line[0] to whether or not a line was detected
       line[1] = linecorrection.filter2(); // set line[1] to whether or not a line was detected
-      if (line[0]) { // If the black line is detected, the robot will stop
+      if (line[0]) { // If the black line is detected, the robot will stop (left motor)
         leftMotor.stop(true);
       }
-      if (line[1]) {
+      if (line[1]) { // (right motor)
         rightMotor.stop(true);
       }
-      if (!leftMotor.isMoving() && !rightMotor.isMoving()) {
+      if (!leftMotor.isMoving() && !rightMotor.isMoving()) { // If both light sensor detects the black line
+        // It means both wheels are in the same line
         line[0] = false;
         line[1] = false;
         leftMotor.stop(true);
@@ -155,7 +156,6 @@ public class LightLocalizer implements Runnable {
           odometer.setTheta(90);
           odometer.position[2] = Math.toRadians(90);
         }
-
         break;
       }
     }
